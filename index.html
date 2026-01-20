@@ -84,11 +84,12 @@
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
                 textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                textArea.style.top = "-999999px";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                textArea.setAttribute('readonly', '');
                 document.body.appendChild(textArea);
-                textArea.focus();
                 textArea.select();
+                textArea.setSelectionRange(0, 99999); // For mobile
                 document.execCommand('copy');
                 textArea.remove();
                 showToast(`${label} copied!`);
@@ -293,20 +294,25 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
         body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
-        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); pointer-events: none; }
+        .glass-nav-container { pointer-events: auto; }
         .hidden { display: none !important; }
         .sma-logo-header { width: 140px; height: auto; }
         @media (min-width: 768px) { .sma-logo-header { width: 180px; } }
         /* Fix for touch targets */
-        button, a, input[type="checkbox"] { cursor: pointer; pointer-events: auto; }
+        button, a, input[type="checkbox"], .clickable { 
+            cursor: pointer !important; 
+            pointer-events: auto !important; 
+            touch-action: manipulation;
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased overflow-x-hidden">
 
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-[100] glass-nav border-b border-indigo-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 md:px-8 h-20 md:h-24 flex items-center justify-between">
-            <div class="flex items-center gap-4 cursor-pointer relative z-[110]" onclick="showView('form')">
+    <nav class="fixed top-0 w-full z-[1000] glass-nav border-b border-indigo-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 h-20 md:h-24 flex items-center justify-between glass-nav-container">
+            <div class="flex items-center gap-4 cursor-pointer relative z-[1010] clickable" onclick="showView('form')">
                 <img src="https://scontent.fmel12-1.fna.fbcdn.net/v/t39.30808-6/326761430_5828990340526020_7369296547335503508_n.png?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=IeM_Un7-WxYQ7kNvwHmIwAT&_nc_oc=AdleevfNv3oISYrMKCc7lfMY3BB-jJnqSo11pyEZuKxHACaBLShQ8DppDd77tlHHIrY&_nc_zt=23&_nc_ht=scontent.fmel12-1.fna&_nc_gid=2XOa2MBRS9i9pn6v5ngYvg&oh=00_AfpzML-IiKU0Jx4VL7KeBl2ruzf6N1leJPrJ5rJ3bqs_Sg&oe=6975D358" 
                      alt="SMA Logo" class="h-12 md:h-16 w-auto">
                 <div class="hidden sm:block leading-tight">
@@ -314,11 +320,11 @@
                     <span class="text-[9px] md:text-xs font-bold text-indigo-600 tracking-[0.2em] uppercase opacity-80">Association Inc.</span>
                 </div>
             </div>
-            <button id="nav-admin-btn" onclick="showView('admin-login')" class="relative z-[110] px-5 py-2.5 md:px-7 md:py-3.5 rounded-2xl bg-slate-900 text-white font-bold text-[10px] md:text-xs tracking-widest uppercase shadow-xl active:scale-95">Admin Access</button>
+            <button id="nav-admin-btn" onclick="showView('admin-login')" class="relative z-[1010] px-5 py-2.5 md:px-7 md:py-3.5 rounded-2xl bg-slate-900 text-white font-bold text-[10px] md:text-xs tracking-widest uppercase shadow-xl active:scale-95 clickable">Admin Access</button>
         </div>
     </nav>
 
-    <main class="pt-28 md:pt-40 pb-20 px-4 max-w-[1100px] mx-auto relative z-10">
+    <main class="pt-28 md:pt-40 pb-20 px-4 max-w-[1100px] mx-auto">
         
         <!-- REGISTRATION FORM -->
         <section id="view-form" class="max-w-3xl mx-auto">
@@ -382,19 +388,19 @@
                                 <span class="text-4xl font-extrabold tracking-tighter">$60.00</span>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button type="button" onclick="copyToClipboard('803078', 'BSB')" class="bg-white/5 p-5 rounded-2xl border border-white/10 flex justify-between items-center hover:bg-white/10 transition-colors text-left w-full group">
+                                <button type="button" onclick="copyToClipboard('803078', 'BSB')" class="bg-white/5 p-5 rounded-2xl border border-white/10 flex justify-between items-center hover:bg-white/10 transition-colors text-left w-full group clickable">
                                     <div><p class="text-[8px] text-indigo-300 uppercase font-black mb-1">BSB</p><p class="text-lg font-bold tracking-[0.2em]">803 078</p></div>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="opacity-40 group-hover:opacity-100"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                                 </button>
-                                <button type="button" onclick="copyToClipboard('100105317', 'Account')" class="bg-white/5 p-5 rounded-2xl border border-white/10 flex justify-between items-center hover:bg-white/10 transition-colors text-left w-full group">
+                                <button type="button" onclick="copyToClipboard('100105317', 'Account')" class="bg-white/5 p-5 rounded-2xl border border-white/10 flex justify-between items-center hover:bg-white/10 transition-colors text-left w-full group clickable">
                                     <div><p class="text-[8px] text-indigo-300 uppercase font-black mb-1">Account No.</p><p class="text-lg font-bold tracking-widest">100 105 317</p></div>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="opacity-40 group-hover:opacity-100"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                                 </button>
                             </div>
                         </div>
                         
-                        <label class="mt-8 group p-8 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100 flex items-start gap-5 cursor-pointer hover:bg-emerald-100/50">
-                            <input type="checkbox" name="paidConfirmed" class="mt-1 w-7 h-7 rounded-lg border-emerald-300 text-emerald-600 focus:ring-emerald-500">
+                        <label class="mt-8 group p-8 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100 flex items-start gap-5 cursor-pointer hover:bg-emerald-100/50 clickable">
+                            <input type="checkbox" name="paidConfirmed" class="mt-1 w-7 h-7 rounded-lg border-emerald-300 text-emerald-600 focus:ring-emerald-500 clickable">
                             <div class="flex-1">
                                 <p class="text-sm font-extrabold text-emerald-900">I have completed the transfer</p>
                                 <p class="text-[11px] text-emerald-700 font-medium leading-relaxed mt-1">I have transferred $60.00 using my name as a reference.</p>
@@ -402,7 +408,7 @@
                         </label>
                     </div>
                     
-                    <button type="submit" id="submit-btn" class="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-xl shadow-2xl active:scale-[0.98] transition-all uppercase tracking-widest">Submit Registry</button>
+                    <button type="submit" id="submit-btn" class="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-xl shadow-2xl active:scale-[0.98] transition-all uppercase tracking-widest clickable">Submit Registry</button>
                 </form>
             </div>
 
@@ -412,7 +418,7 @@
                 </div>
                 <h2 class="text-4xl font-black text-slate-900 mb-4 tracking-tighter">Registration Complete!</h2>
                 <p class="text-slate-500 mb-14 max-w-xs mx-auto font-medium">Thank you for registering for 2026. Our team will verify the payment shortly.</p>
-                <button onclick="resetForm()" class="px-12 py-5 bg-slate-900 text-white rounded-2xl font-black tracking-widest uppercase text-xs shadow-xl">New Registration</button>
+                <button onclick="resetForm()" class="px-12 py-5 bg-slate-900 text-white rounded-2xl font-black tracking-widest uppercase text-xs shadow-xl clickable">New Registration</button>
             </div>
         </section>
 
@@ -426,8 +432,8 @@
                             <div><h1 class="text-3xl font-black text-slate-900 tracking-tighter">2026 Panel</h1></div>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="exportCSV()" class="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest">Export CSV</button>
-                            <button onclick="logout()" class="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-widest">Sign Out</button>
+                            <button onclick="exportCSV()" class="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest clickable">Export CSV</button>
+                            <button onclick="logout()" class="px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-widest clickable">Sign Out</button>
                         </div>
                     </div>
 
@@ -481,7 +487,7 @@
                             <div class="space-y-2">
                                 <input type="password" id="new-admin-pw" placeholder="New Password" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-400 font-bold tracking-widest text-sm">
                             </div>
-                            <button type="submit" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">Update Key</button>
+                            <button type="submit" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl clickable">Update Key</button>
                         </form>
                     </div>
                 </div>
@@ -496,28 +502,28 @@
                 <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-10">2026 Portal Login</p>
                 <form onsubmit="handleLogin(event)" class="space-y-4">
                     <input type="password" id="admin-pw" placeholder="Security Key" class="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-2xl text-center font-bold outline-none focus:border-indigo-500 transition-all tracking-widest">
-                    <button type="submit" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl">Authenticate</button>
-                    <button type="button" onclick="showView('form')" class="text-[10px] text-indigo-600 font-black uppercase tracking-[0.2em] pt-8 block mx-auto">Back to Registry</button>
+                    <button type="submit" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl clickable">Authenticate</button>
+                    <button type="button" onclick="showView('form')" class="text-[10px] text-indigo-600 font-black uppercase tracking-[0.2em] pt-8 block mx-auto clickable">Back to Registry</button>
                 </form>
             </div>
         </section>
     </main>
 
     <!-- UI -->
-    <div id="toast" class="fixed top-28 left-1/2 -translate-x-1/2 hidden opacity-0 transition-all duration-300 z-[200]">
+    <div id="toast" class="fixed top-28 left-1/2 -translate-x-1/2 hidden opacity-0 transition-all duration-300 z-[2000]">
         <div class="px-8 py-4 bg-slate-900 text-white rounded-2xl shadow-2xl flex items-center gap-4">
             <span id="toast-message" class="text-[10px] font-black uppercase tracking-widest"></span>
         </div>
     </div>
 
     <!-- DELETE -->
-    <div id="delete-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
+    <div id="delete-modal" class="fixed inset-0 z-[5000] hidden flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
         <div class="w-full max-w-sm p-12 bg-white rounded-[3.5rem] shadow-2xl text-center">
             <h3 class="text-2xl font-black mb-3 tracking-tighter">Remove Entry?</h3>
             <p class="text-slate-500 mb-10 text-sm font-medium">Removing <span id="delete-member-name" class="font-black text-slate-900"></span> cannot be undone.</p>
             <div class="flex flex-col gap-3">
-                <button onclick="confirmDelete()" class="w-full py-5 bg-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest">Delete</button>
-                <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="w-full py-5 bg-slate-100 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest">Cancel</button>
+                <button onclick="confirmDelete()" class="w-full py-5 bg-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest clickable">Delete</button>
+                <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="w-full py-5 bg-slate-100 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest clickable">Cancel</button>
             </div>
         </div>
     </div>
