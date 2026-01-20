@@ -1,526 +1,391 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SMA Registry Portal</title>
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMA Registry | Shepparton</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-      body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background: #F8FAFC; }
-      .card { background: white; border: 1px solid #e2e8f0; border-radius: 18px; padding: 18px; box-shadow: 0 12px 30px rgba(15,23,42,.08); }
-      input, button { font: inherit; }
-      input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; }
-      button { padding: 12px 14px; border-radius: 12px; border: 0; background: #2563eb; color: white; font-weight: 800; cursor: pointer; }
-      button:disabled { opacity: .6; cursor: not-allowed; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { padding: 10px; border-bottom: 1px solid #eef2f7; text-align: left; vertical-align: top; font-size: 14px; }
-      th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #64748b; }
-      .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
-      .nav { position: sticky; top: 0; background: rgba(255,255,255,.85); backdrop-filter: blur(10px); border-bottom: 1px solid #e2e8f0; }
-      .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; max-width: 1100px; margin: 0 auto; }
-      .badge { display:inline-block; padding: 6px 10px; border-radius: 999px; background: #eff6ff; color:#2563eb; font-weight: 900; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
-      .row { display: grid; grid-template-columns: 1fr; gap: 16px; }
-      @media (min-width: 900px) { .row { grid-template-columns: 1.1fr .9fr; gap: 24px; } }
-      .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .muted { color: #64748b; }
-      .title { font-size: 40px; line-height: 1.05; margin: 10px 0 10px; color: #0f172a; }
-      .actions { display:flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-      .btn2 { background:#0f172a; }
-      .btnGhost { background:#f1f5f9; color:#334155; }
-      .status { position: fixed; bottom: 18px; right: 18px; background: white; border-left: 8px solid #22c55e; padding: 12px 14px; border-radius: 14px; box-shadow: 0 16px 40px rgba(15,23,42,.18); font-weight: 800; }
-      .status.err { border-left-color: #ef4444; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FDFDFD; }
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .input-focus-ring:focus { border-color: #2563eb; background-color: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        [v-cloak] { display: none; }
     </style>
-  </head>
+</head>
+<body class="text-slate-900 selection:bg-blue-100 selection:text-blue-900">
 
-  <body>
-    <div id="root"></div>
+    <!-- Navigation -->
+    <nav class="glass-nav border-b border-slate-200/60 sticky top-0 z-[100] px-4 md:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="showView('form')">
+                <img src="https://scontent.fmel12-1.fna.fbcdn.net/v/t39.30808-6/326761430_5828990340526020_7369296547335503508_n.png?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=Yq6Q1TcrqpoQ7kNvwFk81d8&_nc_oc=AdlARv8L_j5fK1fqMV7i62IAvsckYJtF9qEaQDcBt9HFnX2pxMOZFljQ3_2H4O9Ih-k&_nc_zt=23&_nc_ht=scontent.fmel12-1.fna&_nc_gid=OuwbNU68W5hWc2g3iTPq6g&oh=00_AfpFSZ2uiPoQnNNBSfagBVCM2554tvXq7MUYB6lmOqvFCQ&oe=69733058" class="w-9 h-9 rounded-xl shadow-sm border border-slate-200/50" alt="Logo">
+                <div class="hidden sm:block">
+                    <span class="block font-extrabold text-slate-900 text-sm leading-none">SMA Registry</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Shepparton</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <div class="hidden md:flex gap-2">
+                    <button onclick="showView('form')" class="px-4 py-2 text-xs font-bold rounded-xl transition-all hover:bg-slate-100">Register</button>
+                    <button onclick="showView('admin-login')" class="px-4 py-2 text-xs font-bold rounded-xl transition-all hover:bg-slate-100">Admin Panel</button>
+                </div>
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600">
+                    <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Dropdown -->
+        <div id="mobile-menu" class="hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl p-4 flex flex-col gap-2">
+            <button onclick="showView('form'); toggleMobileMenu()" class="w-full py-3 px-4 text-left font-bold text-sm text-slate-700 hover:bg-slate-50 rounded-xl">Registration Form</button>
+            <button onclick="showView('admin-login'); toggleMobileMenu()" class="w-full py-3 px-4 text-left font-bold text-sm text-slate-700 hover:bg-slate-50 rounded-xl">Admin Access</button>
+        </div>
+    </nav>
 
-    <!-- React + ReactDOM + Babel (for one-file JSX) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Global Toast -->
+    <div id="toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300">
+        <p id="toast-message" class="font-bold text-xs md:text-sm text-white"></p>
+    </div>
 
-    <!-- Firebase v9+ via CDN (modular) -->
+    <main class="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-12">
+        
+        <!-- View: Form -->
+        <section id="view-form" class="animate-in fade-in duration-500">
+            <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-center lg:items-start pt-4">
+                <div class="flex-1 text-center lg:text-left space-y-6 md:space-y-8">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        Community Registry
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+                        Connect with the <br><span class="text-blue-600">SMA Family.</span>
+                    </h1>
+                    <p class="text-slate-500 text-base md:text-lg font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
+                        Join our official member database to stay updated on community events and support networks in Shepparton.
+                    </p>
+                    <div class="flex items-center gap-4 justify-center lg:justify-start pt-4">
+                        <div class="flex -space-x-3" id="avatar-stack">
+                            <div class="w-10 h-10 rounded-full border-4 border-white bg-slate-200"></div>
+                            <div class="w-10 h-10 rounded-full border-4 border-white bg-blue-600 flex items-center justify-center text-[10px] text-white font-bold" id="stat-count">...</div>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-xs font-bold text-slate-800 leading-tight">Verified Registry</p>
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Join <span id="member-total">0</span> Members</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-md">
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-200/60">
+                        <form id="registry-form" class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                                <input name="name" required placeholder="Full Name" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
+                                    <input name="email" type="email" required placeholder="Email" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile</label>
+                                    <input name="mobile" required placeholder="Mobile" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Profession</label>
+                                <input name="profession" required placeholder="Occupation" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
+                            </div>
+                            <div class="pt-2 border-t border-slate-100 mt-2 space-y-3">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Family (Optional)</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input name="spouse" placeholder="Spouse" class="px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm input-focus-ring">
+                                    <input name="childrenCount" type="number" placeholder="Children" class="px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm input-focus-ring">
+                                </div>
+                                <input name="childrenNames" placeholder="Children Names" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm input-focus-ring">
+                            </div>
+                            <button type="submit" id="submit-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] text-xs uppercase tracking-[0.2em] mt-2">
+                                Submit Registration
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- View: Admin Login -->
+        <section id="view-admin-login" class="hidden max-w-md mx-auto mt-12 md:mt-20 animate-in fade-in zoom-in duration-300">
+            <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-slate-200/60 text-center">
+                <div class="w-16 h-16 bg-slate-50 text-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-slate-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold mb-1 text-slate-900 tracking-tight">Admin Portal</h2>
+                <p class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">Authorised Only</p>
+                <form onsubmit="handleLogin(event)">
+                    <input id="admin-pw" type="password" class="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl mb-6 text-center text-xl font-bold tracking-widest outline-none input-focus-ring" placeholder="••••">
+                    <button class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-all shadow-lg text-xs uppercase tracking-widest">Secure Unlock</button>
+                    <button type="button" onclick="showView('form')" class="mt-6 text-slate-400 hover:text-slate-600 font-bold text-[10px] uppercase tracking-widest">Return to form</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- View: Admin Panel -->
+        <section id="view-admin-panel" class="hidden space-y-8 animate-in fade-in slide-in-from-bottom-4">
+            <div class="flex flex-col lg:flex-row gap-8 justify-between items-start">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Dashboard</h1>
+                    <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-0.5">SMA Registry Management</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 w-full lg:w-auto">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div class="p-3 rounded-xl bg-blue-50 text-blue-600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                        <div><p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Members</p><p id="stat-members" class="text-lg font-bold">0</p></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                        <div class="p-3 rounded-xl bg-rose-50 text-rose-600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div>
+                        <div><p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Families</p><p id="stat-families" class="text-lg font-bold">0</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-stretch gap-4">
+                <div class="flex gap-2">
+                    <button onclick="exportCSV()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-colors">Export CSV</button>
+                    <button onclick="logout()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-colors">Logout</button>
+                </div>
+                <div class="relative">
+                    <input id="search-input" type="text" placeholder="Filter..." oninput="filterTable()" class="w-full md:w-64 pl-4 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-bold text-sm shadow-sm">
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[1.5rem] border border-slate-200/60 shadow-xl overflow-hidden">
+                <div class="overflow-x-auto hide-scrollbar">
+                    <table class="w-full text-left min-w-[700px]">
+                        <thead class="bg-slate-50/50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <tr>
+                                <th class="px-6 py-4">Member</th>
+                                <th class="px-6 py-4">Profession</th>
+                                <th class="px-6 py-4">Family</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="member-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-4 py-12 border-t border-slate-100 mt-8 text-center md:text-left">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 opacity-50 grayscale">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">© 2024 SMA Shepparton</span>
+            <div class="flex gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <a href="#" onclick="showView('form')">Public Form</a>
+                <a href="#" onclick="showView('admin-login')">Admin Portal</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
     <script type="module">
-      // Expose firebase modules to window so the Babel script can use them.
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-      import {
-        getFirestore,
-        collection,
-        addDoc,
-        onSnapshot,
-        doc,
-        deleteDoc,
-        serverTimestamp,
-        writeBatch
-      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-      import {
-        getAuth,
-        signInAnonymously,
-        onAuthStateChanged
-      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-      window.__fb = {
-        initializeApp,
-        getFirestore,
-        collection,
-        addDoc,
-        onSnapshot,
-        doc,
-        deleteDoc,
-        serverTimestamp,
-        writeBatch,
-        getAuth,
-        signInAnonymously,
-        onAuthStateChanged
-      };
+        // Configuration and Initialization
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sma-registry-production';
+        
+        let members = [];
+        let currentUser = null;
+        let unsubscribeSnap = null;
 
-      window.dispatchEvent(new Event("firebase-ready"));
-    </script>
-
-    <!-- Your app (single-file JSX) -->
-    <script type="text/babel">
-      const { useState, useEffect, useRef, useMemo } = React;
-
-      const LOGO_URL =
-        "https://scontent.fmel12-1.fna.fbcdn.net/v/t39.30808-6/326761430_5828990340526020_7369296547335503508_n.png?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=Yq6Q1TcrqpoQ7kNvwFk81d8&_nc_oc=AdlARv8L_j5fK1fqMV7i62IAvsckYJtF9qEaQDcBt9HFnX2pxMOZFljQ3_2H4O9Ih-k&_nc_zt=23&_nc_ht=scontent.fmel12-1.fna&_nc_gid=OuwbNU68W5hWc2g3iTPq6g&oh=00_AfpFSZ2uiPoQnNNBSfagBVCM2554tvXq7MUYB6lmOqvFCQ&oe=69733058";
-
-      const ADMIN_PASSWORD = "admin123";
-      const appId = "sma-member-registry-v2";
-
-      const Logo = ({ size = 44 }) => (
-        <img
-          src={LOGO_URL}
-          alt="SMA Logo"
-          style={{ width: size, height: size, borderRadius: 14, objectFit: "cover", border: "1px solid #f1f5f9" }}
-        />
-      );
-
-      function App() {
-        const [ready, setReady] = useState(false);
-
-        const [currentUser, setCurrentUser] = useState(null);
-        const [view, setView] = useState("form");
-        const [submissions, setSubmissions] = useState([]);
-        const [searchTerm, setSearchTerm] = useState("");
-        const [status, setStatus] = useState({ type: "", message: "" });
-        const [loading, setLoading] = useState(false);
-        const [connectionError, setConnectionError] = useState(false);
-        const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-
-        const fileInputRef = useRef(null);
-
-        // 1) Wait for Firebase modules to be loaded
-        useEffect(() => {
-          const onReady = () => setReady(true);
-          window.addEventListener("firebase-ready", onReady);
-          return () => window.removeEventListener("firebase-ready", onReady);
-        }, []);
-
-        const showStatus = (type, message) => {
-          setStatus({ type, message });
-          setTimeout(() => setStatus({ type: "", message: "" }), 5000);
-        };
-
-        // 2) Init Firebase + Auth
-        useEffect(() => {
-          if (!ready) return;
-
-          const {
-            initializeApp,
-            getAuth,
-            signInAnonymously,
-            onAuthStateChanged,
-            getFirestore
-          } = window.__fb;
-
-          // TODO: REPLACE with your Firebase web config (Project settings -> Web app)
-          const firebaseConfig = {
-            apiKey: "REPLACE_ME",
-            authDomain: "REPLACE_ME",
-            projectId: "REPLACE_ME",
-            storageBucket: "REPLACE_ME",
-            messagingSenderId: "REPLACE_ME",
-            appId: "REPLACE_ME"
-          };
-
-          try {
-            const app = initializeApp(firebaseConfig);
-            window.__app = app;
-            window.__auth = getAuth(app);
-            window.__db = getFirestore(app);
-
-            signInAnonymously(window.__auth).catch((err) => {
-              console.error("Auth Error:", err);
-              setConnectionError(true);
-            });
-
-            const unsub = onAuthStateChanged(window.__auth, setCurrentUser);
-            return () => unsub();
-          } catch (e) {
-            console.error(e);
-            setConnectionError(true);
-          }
-        }, [ready]);
-
-        // 3) Firestore realtime sync
-        useEffect(() => {
-          if (!ready || !currentUser || !window.__db) return;
-
-          const { collection, onSnapshot } = window.__fb;
-          const db = window.__db;
-
-          const colRef = collection(db, "artifacts", appId, "public", "data", "members");
-
-          const unsub = onSnapshot(
-            colRef,
-            (snapshot) => {
-              const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-              docs.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-              setSubmissions(docs);
-            },
-            (err) => {
-              console.error("Firestore Error:", err);
-              if (view === "admin-panel") showStatus("error", "Database access restricted.");
+        // AUTHENTICATION PROTOCOL (MANDATORY RULE 3)
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+                showToast("Connection error. Please refresh.", false);
             }
-          );
-
-          return () => unsub();
-        }, [ready, currentUser, view]);
-
-        const stats = useMemo(() => {
-          const totalMembers = submissions.length;
-          const totalChildren = submissions.reduce((acc, curr) => acc + (Number(curr.childrenCount) || 0), 0);
-          const families = submissions.filter((s) => s.spouse || (Number(s.childrenCount) || 0) > 0).length;
-          return { totalMembers, totalChildren, families };
-        }, [submissions]);
-
-        const filteredMembers = useMemo(() => {
-          const q = searchTerm.toLowerCase();
-          return submissions.filter(
-            (s) =>
-              (s.name || "").toLowerCase().includes(q) ||
-              (s.profession || "").toLowerCase().includes(q) ||
-              (s.email || "").toLowerCase().includes(q)
-          );
-        }, [submissions, searchTerm]);
-
-        const handleFormSubmit = async (e) => {
-          e.preventDefault();
-          if (!currentUser) return showStatus("error", "Authenticating...");
-
-          setLoading(true);
-
-          const formData = new FormData(e.target);
-          const payload = Object.fromEntries(formData.entries());
-
-          if (!String(payload.mobile || "").match(/^[0-9+ ]{8,15}$/)) {
-            setLoading(false);
-            return showStatus("error", "Invalid mobile number.");
-          }
-
-          payload.childrenCount = Number(payload.childrenCount) || 0;
-
-          try {
-            const { collection, addDoc, serverTimestamp } = window.__fb;
-            const db = window.__db;
-
-            payload.timestamp = serverTimestamp();
-            payload.createdBy = currentUser.uid;
-
-            await addDoc(collection(db, "artifacts", appId, "public", "data", "members"), payload);
-            showStatus("success", "Registration complete. Welcome to SMA!");
-            e.target.reset();
-          } catch (err) {
-            console.error(err);
-            showStatus("error", "Submission failed.");
-          } finally {
-            setLoading(false);
-          }
         };
 
-        const handleDelete = async (id) => {
-          try {
-            const { doc, deleteDoc } = window.__fb;
-            const db = window.__db;
+        // Listen for Auth State Changes
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                setupFirestoreSync();
+            } else {
+                // If sign out happens or session expires, clean up listeners
+                if (unsubscribeSnap) {
+                    unsubscribeSnap();
+                    unsubscribeSnap = null;
+                }
+            }
+        });
 
-            await deleteDoc(doc(db, "artifacts", appId, "public", "data", "members", id));
-            setDeleteConfirmId(null);
-            showStatus("success", "Member record deleted.");
-          } catch (err) {
-            console.error(err);
-            showStatus("error", "Delete failed.");
-          }
+        // FIRESTORE SYNC PROTOCOL (MANDATORY RULE 1 & 2)
+        const setupFirestoreSync = () => {
+            if (!currentUser) return;
+
+            const collPath = collection(db, 'artifacts', appId, 'public', 'data', 'members');
+            
+            // Clean up existing listener if any
+            if (unsubscribeSnap) unsubscribeSnap();
+
+            // Setup real-time listener with proper error handling
+            unsubscribeSnap = onSnapshot(collPath, (snap) => {
+                members = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderStats();
+                renderTable();
+            }, (err) => {
+                console.error("Sync error:", err);
+                // Note: Missing permissions usually happens if the user isn't authed yet 
+                // or if the path is incorrect. Rule 1 ensures the path is valid.
+            });
         };
 
-        const handleExportCSV = () => {
-          const headers = ["Name", "Email", "Mobile", "Profession", "Spouse", "Children", "Child Names", "Join Date"];
-          const rows = submissions.map((s) => [
-            `"${s.name || ""}"`,
-            `"${s.email || ""}"`,
-            `"${s.mobile || ""}"`,
-            `"${s.profession || ""}"`,
-            `"${s.spouse || ""}"`,
-            Number(s.childrenCount) || 0,
-            `"${s.childrenNames || ""}"`,
-            s.timestamp?.seconds ? new Date(s.timestamp.seconds * 1000).toLocaleDateString() : "New"
-          ]);
-
-          const blob = new Blob([[headers.join(","), ...rows.map((r) => r.join(","))].join("\n")], { type: "text/csv" });
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = `SMA_Admin_Export_${new Date().toISOString().split("T")[0]}.csv`;
-          link.click();
+        // View Controller
+        window.showView = (id) => {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`view-${id}`).classList.remove('hidden');
+            window.scrollTo(0, 0);
         };
 
-        const handleImportCSV = (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
+        window.toggleMobileMenu = () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        };
 
-          const reader = new FileReader();
-          reader.onload = async (ev) => {
-            const text = String(ev.target.result || "");
-            const lines = text.split("\n").filter((l) => l.trim());
+        // UI Toast
+        const showToast = (msg, success = true) => {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toast.className = `fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 ${success ? 'bg-emerald-600' : 'bg-rose-600'}`;
+            toastMsg.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        };
+
+        window.handleLogin = (e) => {
+            e.preventDefault();
+            const pw = document.getElementById('admin-pw').value;
+            if (pw === "admin123") {
+                showView('admin-panel');
+                showToast("Access Granted");
+            } else {
+                showToast("Invalid Key", false);
+            }
+        };
+
+        window.logout = () => showView('form');
+
+        // CRUD Operations
+        document.getElementById('registry-form').onsubmit = async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                showToast("Authenticating... try again in a moment.", false);
+                return;
+            }
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.childrenCount = Number(data.childrenCount) || 0;
+            data.timestamp = serverTimestamp();
 
             try {
-              const { writeBatch, collection, doc, serverTimestamp } = window.__fb;
-              const db = window.__db;
-
-              const batch = writeBatch(db);
-
-              lines.slice(1).forEach((line) => {
-                const v = line.split(",").map((item) => item.replace(/^"|"$/g, "").trim());
-                const newDocRef = doc(collection(db, "artifacts", appId, "public", "data", "members"));
-
-                batch.set(newDocRef, {
-                  name: v[0] || "",
-                  email: v[1] || "",
-                  mobile: v[2] || "",
-                  profession: v[3] || "",
-                  spouse: v[4] || "",
-                  childrenCount: Number(v[5]) || 0,
-                  childrenNames: v[6] || "",
-                  timestamp: serverTimestamp(),
-                  imported: true
-                });
-              });
-
-              await batch.commit();
-              showStatus("success", "Import successful.");
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), data);
+                showToast("Successfully Registered!");
+                e.target.reset();
             } catch (err) {
-              console.error(err);
-              showStatus("error", "Import failed.");
+                console.error("Submission failed:", err);
+                showToast("Submission failed", false);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Submit Registration";
             }
-          };
-          reader.readAsText(file);
         };
 
-        if (connectionError) {
-          return (
-            <div className="wrap" style={{ paddingTop: 80 }}>
-              <div className="card" style={{ maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
-                <h2 style={{ marginTop: 0 }}>Connection Error</h2>
-                <p className="muted">Unable to authenticate. Please check your network.</p>
-                <button onClick={() => window.location.reload()}>Retry</button>
-              </div>
-            </div>
-          );
-        }
+        window.deleteEntry = async (id) => {
+            if (!currentUser) return;
+            if (!confirm("Are you sure?")) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', id));
+                showToast("Entry Deleted");
+            } catch (err) {
+                showToast("Delete failed", false);
+            }
+        };
 
-        return (
-          <div>
-            <div className="nav">
-              <div className="nav-inner">
-                <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setView("form")}>
-                  <Logo size={40} />
-                  <div>
-                    <div style={{ fontWeight: 950, color: "#0f172a", lineHeight: 1 }}>SMA</div>
-                    <div className="muted" style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em" }}>
-                      Registry Portal
-                    </div>
-                  </div>
-                </div>
+        // Rendering
+        const renderStats = () => {
+            document.getElementById('member-total').innerText = members.length;
+            document.getElementById('stat-count').innerText = members.length;
+            document.getElementById('stat-members').innerText = members.length;
+            const families = members.filter(m => m.spouse || m.childrenCount > 0).length;
+            document.getElementById('stat-families').innerText = families;
+        };
 
-                <div className="actions">
-                  {view !== "form" ? (
-                    <button className="btnGhost" onClick={() => setView("form")}>New Registration</button>
-                  ) : (
-                    <button className="btnGhost" onClick={() => setView("admin-login")}>Admin Access</button>
-                  )}
-                </div>
-              </div>
-            </div>
+        window.filterTable = () => renderTable();
 
-            <div className="wrap">
-              {status.message && (
-                <div className={"status " + (status.type === "error" ? "err" : "")}>
-                  {status.message}
-                </div>
-              )}
+        const renderTable = () => {
+            const tbody = document.getElementById('member-table-body');
+            const queryVal = document.getElementById('search-input').value.toLowerCase();
+            
+            const filtered = members.filter(m => 
+                (m.name || '').toLowerCase().includes(queryVal) || 
+                (m.profession || '').toLowerCase().includes(queryVal) ||
+                (m.email || '').toLowerCase().includes(queryVal)
+            );
 
-              {view === "form" && (
-                <div className="row" style={{ paddingTop: 18 }}>
-                  <div>
-                    <span className="badge">Official Community Hub</span>
-                    <h1 className="title">Empowering the <span style={{ color: "#2563eb" }}>Malayalee</span> Spirit.</h1>
-                    <p className="muted" style={{ fontSize: 16, maxWidth: 520 }}>
-                      Register once to stay connected with the Shepparton Malayalee Association events and community services.
-                    </p>
-                    <p className="muted" style={{ fontWeight: 900 }}>
-                      {submissions.length > 0 ? `${submissions.length} Members Registered` : "Join us as our first member"}
-                    </p>
-                  </div>
+            tbody.innerHTML = filtered.map(m => `
+                <tr class="hover:bg-slate-50/50 group transition-colors">
+                    <td class="px-6 py-5">
+                        <div class="font-bold text-slate-900 text-sm">${m.name || 'Anonymous'}</div>
+                        <div class="text-[10px] font-semibold text-slate-400 mt-0.5">${m.email || '-'} • ${m.mobile || '-'}</div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-bold uppercase tracking-wide">${m.profession || 'Member'}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="text-[11px] font-bold text-slate-600">${m.spouse ? '❤ ' + m.spouse : ''}</div>
+                        <div class="text-[10px] text-slate-400">${m.childrenCount > 0 ? 'Children: ' + m.childrenCount : ''}</div>
+                    </td>
+                    <td class="px-6 py-5 text-right">
+                        <button onclick="deleteEntry('${m.id}')" class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        };
 
-                  <div className="card">
-                    <form onSubmit={handleFormSubmit} style={{ display: "grid", gap: 12 }}>
-                      <div>
-                        <div className="muted" style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 6 }}>
-                          Full Name
-                        </div>
-                        <input name="name" required placeholder="John Doe" />
-                      </div>
+        window.exportCSV = () => {
+            const headers = "Name,Email,Mobile,Profession,Spouse,ChildrenCount,ChildrenNames\n";
+            const csv = members.map(m => `"${m.name || ''}","${m.email || ''}","${m.mobile || ''}","${m.profession || ''}","${m.spouse || ''}","${m.childrenCount || 0}","${m.childrenNames || ''}"`).join("\n");
+            const blob = new Blob([headers + csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `SMA_Registry_${new Date().toISOString().split('T')[0]}.csv`);
+            a.click();
+        };
 
-                      <div className="grid2">
-                        <input name="email" type="email" required placeholder="Email" />
-                        <input name="mobile" required placeholder="Mobile" />
-                      </div>
+        // Initialize Auth on Load
+        window.addEventListener('load', initAuth);
 
-                      <div>
-                        <div className="muted" style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 6 }}>
-                          Profession
-                        </div>
-                        <input name="profession" required placeholder="Occupation" />
-                      </div>
-
-                      <div>
-                        <div className="muted" style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 6 }}>
-                          Family (Optional)
-                        </div>
-                        <div className="grid2">
-                          <input name="spouse" placeholder="Spouse" />
-                          <input name="childrenCount" type="number" placeholder="No. Children" />
-                        </div>
-                        <div style={{ height: 10 }} />
-                        <input name="childrenNames" placeholder="Children Names (comma separated)" />
-                      </div>
-
-                      <button disabled={loading}>{loading ? "Submitting..." : "Register Now"}</button>
-                    </form>
-                  </div>
-                </div>
-              )}
-
-              {view === "admin-login" && (
-                <div style={{ paddingTop: 40 }}>
-                  <div className="card" style={{ maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
-                    <h2 style={{ marginTop: 0 }}>Admin Login</h2>
-                    <p className="muted">Authorised Access Only</p>
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        const pw = e.target.pw.value;
-                        if (pw === ADMIN_PASSWORD) setView("admin-panel");
-                        else showStatus("error", "Incorrect Admin Key");
-                      }}
-                      style={{ display: "grid", gap: 12, marginTop: 14 }}
-                    >
-                      <input name="pw" type="password" placeholder="••••••••" />
-                      <button className="btn2" type="submit">Unlock Admin View</button>
-                    </form>
-                  </div>
-                </div>
-              )}
-
-              {view === "admin-panel" && (
-                <div style={{ paddingTop: 18, display: "grid", gap: 12 }}>
-                  <div className="card">
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <Logo size={56} />
-                        <div>
-                          <div style={{ fontSize: 26, fontWeight: 950, color: "#0f172a" }}>Admin Dashboard</div>
-                          <div className="muted" style={{ fontWeight: 900, fontSize: 11, textTransform: "uppercase", letterSpacing: ".12em" }}>
-                            SMA Official Member Management
-                          </div>
-                        </div>
-                      </div>
-                      <div className="muted" style={{ fontWeight: 900 }}>
-                        Total: {stats.totalMembers} • Families: {stats.families} • Children: {stats.totalChildren}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="card">
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <input ref={fileInputRef} type="file" accept=".csv" style={{ display: "none" }} onChange={handleImportCSV} />
-                        <button className="btnGhost" onClick={() => fileInputRef.current.click()}>Import CSV</button>
-                        <button className="btn2" onClick={handleExportCSV}>Export All</button>
-                      </div>
-
-                      <div style={{ minWidth: 260 }}>
-                        <input
-                          type="text"
-                          placeholder="Search members..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="card" style={{ overflowX: "auto" }}>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Member</th>
-                          <th>Role</th>
-                          <th>Family</th>
-                          <th style={{ textAlign: "right" }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredMembers.map((m) => (
-                          <tr key={m.id}>
-                            <td>
-                              <div style={{ fontWeight: 950, color: "#0f172a" }}>{m.name}</div>
-                              <div className="muted" style={{ fontSize: 12 }}>{m.email}</div>
-                              <div style={{ color: "#2563eb", fontWeight: 900, fontSize: 12 }}>{m.mobile}</div>
-                            </td>
-                            <td>{m.profession || "N/A"}</td>
-                            <td>
-                              <div>{m.spouse ? `Spouse: ${m.spouse}` : ""}</div>
-                              <div className="muted" style={{ fontSize: 12 }}>
-                                {(Number(m.childrenCount) || 0) > 0 ? `Children: ${m.childrenNames || ""}` : ""}
-                              </div>
-                            </td>
-                            <td style={{ textAlign: "right" }}>
-                              {deleteConfirmId === m.id ? (
-                                <span style={{ display: "inline-flex", gap: 8 }}>
-                                  <button style={{ background: "#ef4444" }} onClick={() => handleDelete(m.id)}>Confirm</button>
-                                  <button className="btnGhost" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
-                                </span>
-                              ) : (
-                                <button className="btnGhost" onClick={() => setDeleteConfirmId(m.id)}>Delete</button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                        {filteredMembers.length === 0 && (
-                          <tr><td colSpan="4" className="muted">No members found.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      }
-
-      // React 18 createRoot
-      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
     </script>
-  </body>
+</body>
 </html>
