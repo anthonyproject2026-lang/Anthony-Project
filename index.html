@@ -23,29 +23,21 @@
         let unsubscribeSnapshot = null;
         let adminPassword = "admin123";
 
-        // RULE 1 - Strict Paths: ALWAYS use /artifacts/{appId}/public/data/{collectionName}
-        // Ensuring collection name 'config' is clearly part of the path structure
         const getSettingsDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'config', 'admin_settings');
         const getMembersColRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'members');
 
         const initAuth = async () => {
             try {
-                // RULE 3 - Auth Before Queries: Wait for auth to complete
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-                console.log("Auth initialized successfully");
-            } catch (err) { 
-                console.error("Auth init failure:", err); 
-            }
+            } catch (err) { console.error("Auth init failure:", err); }
         };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Once authenticated, fetch settings and start listeners
-                // Using a slight delay to ensure security tokens are propagated
                 setTimeout(async () => {
                     await fetchAdminSettings();
                     setupRealtimeListener();
@@ -62,23 +54,35 @@
                 if (snap.exists()) {
                     adminPassword = snap.data().password || "admin123";
                 }
-            } catch (err) {
-                console.warn("Settings fetch failed (likely document doesn't exist yet):", err.message);
-            }
+            } catch (err) { console.warn("Settings fetch failed:", err.message); }
         };
 
         const setupRealtimeListener = () => {
             if (!auth.currentUser) return;
             if (unsubscribeSnapshot) unsubscribeSnapshot();
-            
             const q = getMembersColRef();
             unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
                 members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderTable();
                 renderStats();
-            }, (error) => {
-                console.error("Listener permission error:", error);
-            });
+            }, (error) => { console.error("Listener error:", error); });
+        };
+
+        window.copyToClipboard = (text, label) => {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                showToast(`${label} copied!`);
+            } catch (err) {
+                showToast("Copy failed", false);
+            }
+            document.body.removeChild(el);
         };
 
         window.showView = (id) => {
@@ -91,7 +95,7 @@
         const showToast = (msg, success = true) => {
             const toast = document.getElementById('toast');
             document.getElementById('toast-message').innerText = msg;
-            toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all transform duration-300 ${success ? 'bg-indigo-600' : 'bg-rose-600'}`;
+            toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[1000] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all transform duration-300 ${success ? 'bg-indigo-600' : 'bg-rose-600'}`;
             toast.classList.remove('hidden', 'opacity-0', '-translate-y-4');
             setTimeout(() => {
                 toast.classList.add('opacity-0', '-translate-y-4');
@@ -102,10 +106,7 @@
         window.handleLogin = async (e) => {
             e.preventDefault();
             const enteredPw = document.getElementById('admin-pw').value.trim();
-            
-            // Final check of current settings
             await fetchAdminSettings();
-            
             if (enteredPw === adminPassword) {
                 isAdmin = true;
                 showView('admin-panel');
@@ -119,45 +120,20 @@
         window.changeAdminPassword = async (e) => {
             e.preventDefault();
             const newPw = document.getElementById('new-password').value.trim();
-            const confirmPw = document.getElementById('confirm-new-password').value.trim();
-            
-            if (!auth.currentUser || !isAdmin) {
-                showToast("Permission denied: Please log in again", false);
-                return;
-            }
-            
-            if (newPw.length < 6) {
-                showToast("Password must be at least 6 characters", false);
-                return;
-            }
-            if (newPw !== confirmPw) {
-                showToast("Passwords do not match", false);
-                return;
-            }
-            
+            if (!auth.currentUser || !isAdmin) return showToast("Permission denied", false);
             try {
-                // Using setDoc with merge:true ensures we create the doc if missing
-                // This is the standard pattern for updating configuration documents
-                const settingsRef = getSettingsDocRef();
-                await setDoc(settingsRef, { 
+                await setDoc(getSettingsDocRef(), { 
                     password: newPw,
                     updatedBy: auth.currentUser.uid,
                     lastUpdated: serverTimestamp() 
                 }, { merge: true });
-                
                 adminPassword = newPw;
-                showToast("Security settings updated!");
-                document.getElementById('password-form').reset();
+                showToast("Password updated!");
                 togglePasswordModal();
-            } catch (err) {
-                console.error("Update error detail:", err);
-                showToast("Permission Error: Ensure you are logged in correctly.", false);
-            }
+            } catch (err) { showToast("Update failed", false); }
         };
 
-        window.togglePasswordModal = () => {
-            document.getElementById('password-modal').classList.toggle('hidden');
-        };
+        window.togglePasswordModal = () => document.getElementById('password-modal').classList.toggle('hidden');
 
         window.logout = () => {
             isAdmin = false;
@@ -171,7 +147,7 @@
             document.getElementById('edit-header').classList.add('hidden');
             document.getElementById('registry-form').reset();
             document.getElementById('form-member-id').value = "";
-            document.getElementById('submit-btn').innerText = "Submit Membership Details";
+            document.getElementById('submit-btn').innerText = "Submit";
         };
 
         window.editEntry = (id) => {
@@ -194,7 +170,7 @@
             f.child2.value = kids[1] || '';
             f.child3.value = kids[2] || '';
             f.child4.value = kids[3] || '';
-            document.getElementById('submit-btn').innerText = "Update Member Details";
+            document.getElementById('submit-btn').innerText = "Submit";
         };
 
         window.openDeleteModal = (id) => {
@@ -217,11 +193,6 @@
 
         document.getElementById('registry-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) {
-                showToast("Reconnecting...", false);
-                await initAuth();
-                return;
-            }
             const btn = document.getElementById('submit-btn');
             const mid = document.getElementById('form-member-id').value;
             btn.disabled = true;
@@ -249,22 +220,16 @@
                 }
                 document.getElementById('form-container').classList.add('hidden');
                 document.getElementById('registration-success').classList.remove('hidden');
-            } catch (err) { 
-                console.error(err);
-                showToast("Submission error. Try again.", false); 
-            } finally { 
+            } catch (err) { showToast("Submission error", false); }
+            finally { 
                 btn.disabled = false; 
-                btn.innerText = mid ? "Update Details" : "Submit Details"; 
+                btn.innerText = "Submit"; 
             }
         };
 
         window.togglePaymentStatus = async (id, cur) => {
             if (!isAdmin || !auth.currentUser) return;
-            try { 
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', id), { isVerifiedPaid: !cur }); 
-            } catch { 
-                showToast("Status change failed", false); 
-            }
+            try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', id), { isVerifiedPaid: !cur }); } catch { showToast("Error", false); }
         };
 
         const renderStats = () => {
@@ -278,11 +243,7 @@
 
         const renderTable = () => {
             const q = document.getElementById('search-input')?.value.toLowerCase() || '';
-            const filtered = members.filter(m => 
-                (m.name||'').toLowerCase().includes(q) || 
-                (m.mobile||'').toLowerCase().includes(q) || 
-                (m.email||'').toLowerCase().includes(q)
-            );
+            const filtered = members.filter(m => (m.name||'').toLowerCase().includes(q) || (m.mobile||'').toLowerCase().includes(q) || (m.email||'').toLowerCase().includes(q));
             const tbody = document.getElementById('member-table-body');
             if (!tbody) return;
 
@@ -321,48 +282,45 @@
         };
 
         window.exportCSV = () => {
-            const h = "Name,Email,Mobile,Profession,Address,Spouse,SpouseProfession,Children,Status\n";
-            const c = members.map(m => `"${m.name}","${m.email}","${m.mobile}","${m.profession||''}","${m.address||''}","${m.spouse||''}","${m.spouseProfession||''}","${(m.childrenList||[]).join(';')}","${m.isVerifiedPaid?'PAID':'PENDING'}"`).join("\n");
+            const h = "Name,Email,Mobile,Profession,Address,Spouse,Status\n";
+            const c = members.map(m => `"${m.name}","${m.email}","${m.mobile}","${m.profession||''}","${m.address||''}","${m.spouse||''}","${m.isVerifiedPaid?'PAID':'PENDING'}"`).join("\n");
             const a = document.createElement('a');
             a.href = window.URL.createObjectURL(new Blob([h + c], { type: 'text/csv' }));
             a.download = `SMA_Directory.csv`;
             a.click();
         };
 
-        window.filterTable = () => renderTable();
-        
-        window.addEventListener('load', () => {
-            initAuth();
-        });
+        window.addEventListener('load', initAuth);
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
         body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none; }
         .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        input, textarea, select { font-size: 16px !important; }
         .table-container::-webkit-scrollbar { height: 6px; }
         .table-container::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body class="text-slate-800 antialiased overflow-x-hidden">
 
     <nav class="fixed top-0 w-full z-50 glass-nav border-b border-indigo-100">
         <div class="max-w-7xl mx-auto px-4 h-16 md:h-24 flex items-center justify-between">
             <div class="flex items-center gap-3 cursor-pointer" onclick="showView('form')">
-                <div class="w-12 h-12 md:w-16 md:h-16">
+                <div class="w-10 h-10 md:w-16 md:h-16">
                     <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" 
                          alt="SMA" class="w-full h-full object-contain mix-blend-multiply">
                 </div>
-                <span class="block font-extrabold text-base md:text-xl tracking-tight text-slate-900 leading-tight">Shepparton Malayalee Association</span>
+                <span class="block font-extrabold text-sm md:text-xl tracking-tight text-slate-900 leading-tight">Shepparton Malayalee Association</span>
             </div>
-            <button id="nav-admin-btn" onclick="showView('admin-login')" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-slate-900 text-white font-bold text-xs md:text-sm shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all">Admin Access</button>
+            <button id="nav-admin-btn" onclick="showView('admin-login')" class="px-3 py-1.5 md:px-6 md:py-3 rounded-xl bg-slate-900 text-white font-bold text-[10px] md:text-sm shadow-lg shadow-slate-200">Admin Access</button>
         </div>
     </nav>
 
     <main class="pt-24 md:pt-36 pb-10 px-4 max-w-[1200px] mx-auto">
         <!-- FORM VIEW -->
         <section id="view-form" class="max-w-3xl mx-auto">
-            <div id="form-container" class="bg-white rounded-[3rem] shadow-2xl border border-indigo-50 overflow-hidden">
+            <div id="form-container" class="bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl border border-indigo-50 overflow-hidden">
                 <div class="bg-gradient-to-br from-indigo-700 to-indigo-900 p-8 md:p-14 text-white text-center">
                     <div class="mb-8 flex justify-center">
                         <div class="bg-white p-4 rounded-[2.5rem] shadow-2xl inline-block">
@@ -379,50 +337,60 @@
                 <form id="registry-form" class="p-6 md:p-12 space-y-8">
                     <input type="hidden" id="form-member-id">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name *</label><input type="text" name="name" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="Enter name"></div>
-                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email *</label><input type="email" name="email" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="email@address.com"></div>
-                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mobile *</label><input type="tel" name="mobile" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="04XX XXX XXX"></div>
-                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Profession</label><input type="text" name="profession" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="Occupation"></div>
+                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name *</label><input type="text" name="name" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="Enter name"></div>
+                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email *</label><input type="email" name="email" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="email@address.com"></div>
+                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mobile *</label><input type="tel" name="mobile" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="04XX XXX XXX"></div>
+                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Profession</label><input type="text" name="profession" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none" placeholder="Occupation"></div>
                     </div>
                     
-                    <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Home Address</label><textarea name="address" rows="2" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all resize-none" placeholder="Address"></textarea></div>
+                    <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Home Address</label><textarea name="address" rows="2" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all resize-none outline-none" placeholder="Address"></textarea></div>
 
                     <div class="pt-8 border-t border-slate-100 space-y-6">
-                        <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Family Details</h2>
+                        <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest">Family Details</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Spouse Name</label><input type="text" name="spouse" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl" placeholder="Full Name"></div>
-                            <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Spouse Profession</label><input type="text" name="spouseProfession" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl" placeholder="Occupation"></div>
+                            <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Spouse Name</label><input type="text" name="spouse" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none" placeholder="Full Name"></div>
+                            <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Spouse Profession</label><input type="text" name="spouseProfession" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none" placeholder="Occupation"></div>
                         </div>
                         <div class="space-y-3">
                             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Children Names</label>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <input type="text" name="child1" placeholder="Child 1" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm">
-                                <input type="text" name="child2" placeholder="Child 2" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm">
-                                <input type="text" name="child3" placeholder="Child 3" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm">
-                                <input type="text" name="child4" placeholder="Child 4" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm">
+                                <input type="text" name="child1" placeholder="Child 1" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm outline-none">
+                                <input type="text" name="child2" placeholder="Child 2" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm outline-none">
+                                <input type="text" name="child3" placeholder="Child 3" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm outline-none">
+                                <input type="text" name="child4" placeholder="Child 4" class="w-full px-4 py-3 bg-indigo-50/40 border-2 border-indigo-100 rounded-xl text-sm outline-none">
                             </div>
                         </div>
                     </div>
 
                     <div class="space-y-6 pt-8">
-                        <div class="p-8 bg-slate-900 rounded-[2rem] text-white shadow-xl">
-                            <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">Membership Contribution</p>
-                            <div class="flex items-end justify-between mb-6">
+                        <div class="p-8 bg-slate-900 rounded-[2.5rem] text-white shadow-xl">
+                            <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Membership Contribution</p>
+                            <div class="flex items-end justify-between mb-8">
                                 <span class="text-sm font-medium opacity-80">Annual Fee</span>
                                 <span class="text-4xl font-extrabold">$60.00</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="bg-white/10 p-4 rounded-2xl border border-white/10"><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">Account Name</p><p class="text-xs font-bold truncate">Shepparton Malayalee Association</p></div>
-                                <div class="bg-white/10 p-4 rounded-2xl border border-white/10"><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">BSB / Account</p><p class="text-xs font-bold">803078 / 100105317</p></div>
+                            <div class="space-y-3">
+                                <div onclick="copyToClipboard('Shepparton Malayalee Association', 'Account Name')" class="bg-white/10 hover:bg-white/20 p-5 rounded-2xl border border-white/10 flex justify-between items-center cursor-pointer group transition-all active:scale-[0.98]">
+                                    <div><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">Account Name</p><p class="text-xs font-bold">Shepparton Malayalee Association</p></div>
+                                    <svg class="text-white/40 group-hover:text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
+                                <div onclick="copyToClipboard('803078', 'BSB')" class="bg-white/10 hover:bg-white/20 p-5 rounded-2xl border border-white/10 flex justify-between items-center cursor-pointer group transition-all active:scale-[0.98]">
+                                    <div><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">BSB Number</p><p class="text-xs font-bold tracking-widest">803078</p></div>
+                                    <svg class="text-white/40 group-hover:text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
+                                <div onclick="copyToClipboard('100105317', 'Account')" class="bg-white/10 hover:bg-white/20 p-5 rounded-2xl border border-white/10 flex justify-between items-center cursor-pointer group transition-all active:scale-[0.98]">
+                                    <div><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">Account Number</p><p class="text-xs font-bold tracking-widest">100105317</p></div>
+                                    <svg class="text-white/40 group-hover:text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </div>
                             </div>
                         </div>
-                        <label class="p-6 bg-indigo-50 rounded-3xl border-2 border-indigo-100 flex items-start gap-5 cursor-pointer hover:bg-indigo-100/50 transition-colors">
-                            <input type="checkbox" name="paidConfirmed" class="mt-1 w-6 h-6 rounded-lg border-indigo-300 text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-sm font-bold text-indigo-950 leading-snug">I confirm that I have transferred the membership fee via bank transfer.</span>
+                        <label class="p-6 bg-indigo-50 rounded-[2rem] border-2 border-indigo-100 flex items-start gap-5 cursor-pointer active:bg-indigo-100 transition-colors">
+                            <input type="checkbox" name="paidConfirmed" class="mt-1 w-6 h-6 rounded-lg border-indigo-300 text-indigo-600 focus:ring-0">
+                            <span class="text-sm font-bold text-indigo-950 leading-snug">I confirm that I have transferred the membership fee.</span>
                         </label>
                     </div>
                     
-                    <button type="submit" id="submit-btn" class="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-extrabold text-xl shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all">Submit Details</button>
+                    <button type="submit" id="submit-btn" class="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-extrabold text-xl shadow-2xl shadow-indigo-200 hover:bg-indigo-700 active:scale-[0.98] transition-all">Submit</button>
                 </form>
             </div>
 
@@ -430,13 +398,13 @@
                 <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </div>
-                <h2 class="text-3xl font-extrabold text-slate-900 mb-3">Submission Received!</h2>
-                <p class="text-slate-500 mb-12 text-lg font-medium">Thank you for updating your membership information.</p>
-                <button onclick="resetRegistrationForm()" class="w-full max-w-sm py-5 bg-slate-900 text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors">Submit Another</button>
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-3 text-center">Success!</h2>
+                <p class="text-slate-500 mb-12 text-lg font-medium text-center">Thank you for your submission.</p>
+                <button onclick="resetRegistrationForm()" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold">New Submission</button>
             </div>
         </section>
 
-        <!-- ADMIN DASHBOARD -->
+        <!-- ADMIN PANELS -->
         <section id="view-admin-panel" class="hidden space-y-8">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] shadow-xl border border-indigo-50">
                 <div class="flex items-center gap-4">
@@ -444,46 +412,46 @@
                     <h1 class="text-2xl font-extrabold text-slate-900">Admin Dashboard</h1>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="exportCSV()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700">Export</button>
-                    <button onclick="togglePasswordModal()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-800">Security</button>
-                    <button onclick="logout()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200">Logout</button>
+                    <button onclick="exportCSV()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase shadow-xl shadow-indigo-100">Export</button>
+                    <button onclick="togglePasswordModal()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase">Security</button>
+                    <button onclick="logout()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase">Logout</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Members</p><p id="stat-members" class="text-3xl font-extrabold text-slate-900">0</p></div>
-                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Paid Verified</p><p id="stat-paid" class="text-3xl font-extrabold text-emerald-600">0</p></div>
-                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Unpaid</p><p id="stat-pending" class="text-3xl font-extrabold text-amber-600">0</p></div>
-                <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl text-center"><p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Total Fee</p><p id="stat-total-payments" class="text-3xl font-extrabold">$0</p></div>
+                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total</p><p id="stat-members" class="text-3xl font-extrabold">0</p></div>
+                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase mb-1">Paid</p><p id="stat-paid" class="text-3xl font-extrabold text-emerald-600">0</p></div>
+                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase mb-1">Unpaid</p><p id="stat-pending" class="text-3xl font-extrabold text-amber-600">0</p></div>
+                <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl text-center"><p class="text-[10px] font-black text-indigo-300 uppercase mb-1">Collection</p><p id="stat-total-payments" class="text-3xl font-extrabold">$0</p></div>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-2xl border border-indigo-50 overflow-hidden">
-                <div class="p-6 bg-slate-50/50"><input type="text" id="search-input" oninput="filterTable()" placeholder="Search members..." class="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl font-medium focus:border-indigo-500 transition-all"></div>
-                <div class="overflow-x-auto table-container"><table class="w-full text-left text-sm"><thead class="bg-slate-50/80 text-slate-500 font-black uppercase text-[10px] tracking-widest border-b border-slate-100"><tr><th class="px-8 py-6">Identity</th><th class="px-8 py-6">Occupation</th><th class="px-8 py-6">Family</th><th class="px-8 py-6 text-center">Status</th><th class="px-8 py-6 text-right">Actions</th></tr></thead><tbody id="member-table-body" class="divide-y divide-slate-50"></tbody></table></div>
+                <div class="p-6 bg-slate-50/50"><input type="text" id="search-input" oninput="renderTable()" placeholder="Search members..." class="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500"></div>
+                <div class="overflow-x-auto table-container"><table class="w-full text-left text-sm"><thead class="bg-slate-50/80 text-slate-500 font-black uppercase text-[10px] tracking-widest border-b border-slate-100"><tr><th class="px-8 py-6">Identity</th><th class="px-8 py-6">Professional</th><th class="px-8 py-6">Family</th><th class="px-8 py-6 text-center">Status</th><th class="px-8 py-6 text-right">Actions</th></tr></thead><tbody id="member-table-body" class="divide-y divide-slate-50"></tbody></table></div>
             </div>
         </section>
 
-        <!-- LOGIN VIEW -->
+        <!-- ADMIN LOGIN -->
         <section id="view-admin-login" class="hidden">
             <div class="max-w-md mx-auto bg-white p-12 rounded-[3rem] shadow-2xl text-center border border-indigo-50">
                 <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" class="w-24 h-24 mx-auto mb-8 object-contain mix-blend-multiply">
                 <h2 class="text-2xl font-extrabold text-slate-900 mb-8">Admin Access</h2>
                 <form onsubmit="handleLogin(event)" class="space-y-4">
-                    <input type="password" id="admin-pw" placeholder="Password" class="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold focus:border-indigo-500 transition-all">
-                    <button type="submit" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-extrabold shadow-xl hover:bg-indigo-700 transition-all">Login</button>
-                    <button type="button" onclick="showView('form')" class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-6">Cancel</button>
+                    <input type="password" id="admin-pw" placeholder="Password" class="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold outline-none focus:border-indigo-500">
+                    <button type="submit" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-extrabold shadow-xl hover:bg-indigo-700">Login</button>
+                    <button type="button" onclick="showView('form')" class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-6">Return</button>
                 </form>
             </div>
         </section>
     </main>
 
-    <div id="toast" class="hidden opacity-0 z-[500]"><span id="toast-message" class="text-white font-bold text-sm"></span></div>
+    <div id="toast" class="hidden opacity-0 z-[1001] pointer-events-none"><span id="toast-message" class="text-white font-bold text-sm"></span></div>
 
-    <div id="delete-modal" class="fixed inset-0 z-[600] hidden flex items-center justify-center p-4">
+    <div id="delete-modal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center p-6">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
         <div class="relative w-full max-w-sm p-10 bg-white rounded-[3rem] shadow-2xl text-center">
-            <h3 class="text-2xl font-extrabold mb-3 text-slate-900">Delete Entry?</h3>
-            <p class="text-slate-500 mb-10 text-sm"><span id="delete-member-name" class="font-bold text-slate-900"></span> will be removed.</p>
+            <h3 class="text-2xl font-extrabold mb-3">Delete Entry?</h3>
+            <p class="text-slate-500 mb-10 text-sm"><span id="delete-member-name" class="font-bold"></span> will be removed.</p>
             <div class="flex gap-4">
                 <button id="confirm-delete-btn" class="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-bold">Delete</button>
                 <button onclick="closeDeleteModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Cancel</button>
@@ -491,17 +459,14 @@
         </div>
     </div>
 
-    <div id="password-modal" class="fixed inset-0 z-[600] hidden flex items-center justify-center p-4">
+    <div id="password-modal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center p-6">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
         <div class="relative w-full max-w-md p-10 bg-white rounded-[3rem] shadow-2xl">
-            <h3 class="text-2xl font-extrabold mb-6 text-slate-900 text-center">Update Password</h3>
-            <form id="password-form" onsubmit="changeAdminPassword(event)" class="space-y-4">
+            <h3 class="text-2xl font-extrabold mb-6 text-center">Update Security</h3>
+            <form onsubmit="changeAdminPassword(event)" class="space-y-4">
                 <input type="password" id="new-password" placeholder="New Password" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500">
-                <input type="password" id="confirm-new-password" placeholder="Confirm Password" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500">
-                <div class="flex gap-4 pt-4">
-                    <button type="submit" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold">Update</button>
-                    <button type="button" onclick="togglePasswordModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Cancel</button>
-                </div>
+                <button type="submit" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-extrabold">Save</button>
+                <button type="button" onclick="togglePasswordModal()" class="w-full py-3 bg-slate-50 text-slate-500 rounded-xl font-bold text-xs">Cancel</button>
             </form>
         </div>
     </div>
