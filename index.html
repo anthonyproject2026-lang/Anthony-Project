@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMA Registry | Shepparton</title>
+    <title>Shepparton Malayalee Association Registry</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -11,201 +11,307 @@
         .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .input-focus-ring:focus { border-color: #2563eb; background-color: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
-        [v-cloak] { display: none; }
+        .status-pill-paid { background-color: #dcfce7; color: #166534; }
+        .status-pill-pending { background-color: #fef3c7; color: #92400e; }
+        
+        @keyframes modal-pop {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-animate { animation: modal-pop 0.2s ease-out forwards; }
+        
+        .logo-glow {
+            box-shadow: 0 0 60px -10px rgba(37, 99, 235, 0.2);
+        }
     </style>
 </head>
 <body class="text-slate-900 selection:bg-blue-100 selection:text-blue-900">
 
+    <!-- Custom Delete Confirmation Modal -->
+    <div id="delete-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl modal-animate border border-slate-200">
+            <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2m-6 9 2 2 4-4"/></svg>
+            </div>
+            <h3 class="text-xl font-black text-center text-slate-900 mb-2">Delete Record?</h3>
+            <p class="text-slate-500 text-sm text-center mb-8 font-medium">This will permanently remove <span id="delete-member-name" class="font-bold text-slate-900"></span> from the registry.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors">Cancel</button>
+                <button id="confirm-delete-btn" class="flex-1 py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-rose-200 transition-all">Delete Now</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="glass-nav border-b border-slate-200/60 sticky top-0 z-[100] px-4 md:px-8 py-3">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="showView('form')">
-                <img src="https://scontent.fmel12-1.fna.fbcdn.net/v/t39.30808-6/326761430_5828990340526020_7369296547335503508_n.png?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=Yq6Q1TcrqpoQ7kNvwFk81d8&_nc_oc=AdlARv8L_j5fK1fqMV7i62IAvsckYJtF9qEaQDcBt9HFnX2pxMOZFljQ3_2H4O9Ih-k&_nc_zt=23&_nc_ht=scontent.fmel12-1.fna&_nc_gid=OuwbNU68W5hWc2g3iTPq6g&oh=00_AfpFSZ2uiPoQnNNBSfagBVCM2554tvXq7MUYB6lmOqvFCQ&oe=69733058" class="w-9 h-9 rounded-xl shadow-sm border border-slate-200/50" alt="Logo">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="showView('form')">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform">S</div>
                 <div class="hidden sm:block">
-                    <span class="block font-extrabold text-slate-900 text-sm leading-none">SMA Registry</span>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Shepparton</span>
+                    <span class="block font-extrabold text-slate-900 text-sm leading-tight tracking-tight">SMA Registry</span>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Community Portal</span>
                 </div>
             </div>
             
             <div class="flex items-center gap-2">
                 <div class="hidden md:flex gap-2">
-                    <button onclick="showView('form')" class="px-4 py-2 text-xs font-bold rounded-xl transition-all hover:bg-slate-100">Register</button>
-                    <button onclick="showView('admin-login')" class="px-4 py-2 text-xs font-bold rounded-xl transition-all hover:bg-slate-100">Admin Panel</button>
+                    <button onclick="showView('form')" class="px-5 py-2.5 text-xs font-bold rounded-xl transition-all hover:bg-slate-100">Register</button>
+                    <button id="nav-admin-btn" onclick="showView('admin-login')" class="px-5 py-2.5 text-xs font-bold rounded-xl transition-all hover:bg-slate-100">Admin Panel</button>
                 </div>
                 <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600">
-                    <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
+                    <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
                 </button>
             </div>
         </div>
-        <!-- Mobile Dropdown -->
         <div id="mobile-menu" class="hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl p-4 flex flex-col gap-2">
             <button onclick="showView('form'); toggleMobileMenu()" class="w-full py-3 px-4 text-left font-bold text-sm text-slate-700 hover:bg-slate-50 rounded-xl">Registration Form</button>
             <button onclick="showView('admin-login'); toggleMobileMenu()" class="w-full py-3 px-4 text-left font-bold text-sm text-slate-700 hover:bg-slate-50 rounded-xl">Admin Access</button>
         </div>
     </nav>
 
-    <!-- Global Toast -->
-    <div id="toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300">
+    <!-- Global Notifications -->
+    <div id="toast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300">
         <p id="toast-message" class="font-bold text-xs md:text-sm text-white"></p>
     </div>
 
     <main class="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-12">
-        
-        <!-- View: Form -->
-        <section id="view-form" class="animate-in fade-in duration-500">
-            <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-center lg:items-start pt-4">
-                <div class="flex-1 text-center lg:text-left space-y-6 md:space-y-8">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                        Community Registry
+        <!-- View: Registration Form -->
+        <section id="view-form" class="animate-in fade-in duration-700">
+            <div class="max-w-6xl mx-auto flex flex-col items-center gap-10 lg:gap-14 pt-4">
+                
+                <!-- Hero Section: Updated Logo Size and Text Size -->
+                <div class="w-full text-center space-y-8 flex flex-col items-center">
+                    <div class="relative group">
+                        <!-- Logo Glow -->
+                        <div class="absolute -inset-10 bg-blue-100/40 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                        <img src="https://scontent.fmel12-1.fna.fbcdn.net/v/t39.30808-6/326761430_5828990340526020_7369296547335503508_n.png?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=Yq6Q1TcrqpoQ7kNvwFk81d8&_nc_oc=AdlARv8L_j5fK1fqMV7i62IAvsckYJtF9qEaQDcBt9HFnX2pxMOZFljQ3_2H4O9Ih-k&_nc_zt=23&_nc_ht=scontent.fmel12-1.fna&_nc_gid=OuwbNU68W5hWc2g3iTPq6g&oh=00_AfpFSZ2uiPoQnNNBSfagBVCM2554tvXq7MUYB6lmOqvFCQ&oe=69733058" 
+                             class="relative w-48 h-48 md:w-64 md:h-64 rounded-[3rem] shadow-2xl logo-glow transition-all duration-500 hover:scale-105 border-4 border-white" 
+                             alt="SMA Logo">
                     </div>
-                    <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
-                        Connect with the <br><span class="text-blue-600">SMA Family.</span>
-                    </h1>
-                    <p class="text-slate-500 text-base md:text-lg font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
-                        Join our official member database to stay updated on community events and support networks in Shepparton.
-                    </p>
-                    <div class="flex items-center gap-4 justify-center lg:justify-start pt-4">
+
+                    <div class="space-y-4 max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            Community Registry 2026
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug tracking-tight">
+                            Connect with the <span class="text-blue-600">Shepparton Malayalee Association</span>
+                        </h1>
+                        <p class="text-slate-500 text-sm font-medium">Join our growing community and stay updated with upcoming events and announcements.</p>
+                    </div>
+
+                    <div class="flex items-center gap-4 pt-2">
                         <div class="flex -space-x-3" id="avatar-stack">
                             <div class="w-10 h-10 rounded-full border-4 border-white bg-slate-200"></div>
                             <div class="w-10 h-10 rounded-full border-4 border-white bg-blue-600 flex items-center justify-center text-[10px] text-white font-bold" id="stat-count">...</div>
                         </div>
                         <div class="text-left">
-                            <p class="text-xs font-bold text-slate-800 leading-tight">Verified Registry</p>
-                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Join <span id="member-total">0</span> Members</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Join <span id="member-total" class="text-slate-900">0</span> Members</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="w-full max-w-md">
-                    <div class="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-200/60">
-                        <form id="registry-form" class="space-y-4">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                                <input name="name" required placeholder="Full Name" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
+                <!-- Form & Payment Container -->
+                <div class="w-full flex flex-col lg:flex-row gap-8 items-start justify-center">
+                    
+                    <!-- Payment Info Card -->
+                    <div class="w-full lg:max-w-xs space-y-4 shrink-0">
+                        <div class="bg-blue-600 p-6 rounded-[2.5rem] text-white shadow-xl shadow-blue-200">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold opacity-70 uppercase tracking-widest">Membership Fee</p>
+                                    <h3 class="text-2xl font-black">$60 <span class="text-xs opacity-80 font-bold">/ Year</span></h3>
+                                </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-4 text-xs font-bold border-t border-white/10 pt-4">
+                                <div>
+                                    <p class="opacity-60 uppercase text-[9px] mb-1">Account Name</p>
+                                    <p>Shepparton Malayalee Association</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <p class="opacity-60 uppercase text-[9px] mb-1">BSB</p>
+                                        <p>803078</p>
+                                    </div>
+                                    <div>
+                                        <p class="opacity-60 uppercase text-[9px] mb-1">Account</p>
+                                        <p>100105317</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-5 bg-slate-50 border border-slate-200 rounded-[2rem] text-center">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Need help?</p>
+                            <p class="text-xs font-bold text-slate-600 mt-1">Contact association secretary</p>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <div class="w-full max-w-xl relative">
+                        <div id="registration-success" class="hidden animate-in zoom-in duration-500 bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-200 text-center space-y-6">
+                            <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Registration Saved!</h2>
+                                <p class="text-slate-500 font-medium text-sm mt-2">The record has been updated in our secure database.</p>
+                            </div>
+                            <button onclick="resetRegistrationForm()" class="w-full py-4 bg-slate-100 hover:bg-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest transition-colors">Register Another Person</button>
+                        </div>
+
+                        <div id="form-container" class="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-slate-200/60">
+                            <div id="edit-header" class="hidden mb-6 flex items-center justify-between bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                                <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Editing Record</span>
+                                <button onclick="cancelEdit()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+                            </div>
+                            
+                            <form id="registry-form" class="space-y-5">
+                                <input type="hidden" name="id" id="form-member-id">
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
-                                    <input name="email" type="email" required placeholder="Email" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name <span class="text-rose-500">*</span></label>
+                                    <input name="name" required placeholder="Full Name" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email <span class="text-rose-500">*</span></label>
+                                        <input name="email" type="email" required placeholder="email@address.com" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile <span class="text-rose-500">*</span></label>
+                                        <input name="mobile" required placeholder="0400 000 000" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                    </div>
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile</label>
-                                    <input name="mobile" required placeholder="Mobile" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Profession</label>
+                                    <input name="profession" placeholder="e.g. Registered Nurse" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
                                 </div>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Profession</label>
-                                <input name="profession" required placeholder="Occupation" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm transition-all input-focus-ring">
-                            </div>
-                            <div class="pt-2 border-t border-slate-100 mt-2 space-y-3">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Family (Optional)</label>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <input name="spouse" placeholder="Spouse" class="px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm input-focus-ring">
-                                    <input name="childrenCount" type="number" placeholder="Children" class="px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm input-focus-ring">
+                                
+                                <div class="pt-2 space-y-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-px bg-slate-100 flex-1"></div>
+                                        <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">Family Details</span>
+                                        <div class="h-px bg-slate-100 flex-1"></div>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input name="spouse" placeholder="Spouse Name" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm input-focus-ring">
+                                        <input name="spouseProfession" placeholder="Spouse Profession" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm input-focus-ring">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <input name="child1" placeholder="Child 1" class="w-full px-4 py-3 bg-slate-50/30 border border-slate-100 rounded-xl outline-none text-xs font-bold">
+                                        <input name="child2" placeholder="Child 2" class="w-full px-4 py-3 bg-slate-50/30 border border-slate-100 rounded-xl outline-none text-xs font-bold">
+                                        <input name="child3" placeholder="Child 3" class="w-full px-4 py-3 bg-slate-50/30 border border-slate-100 rounded-xl outline-none text-xs font-bold">
+                                        <input name="child4" placeholder="Child 4" class="w-full px-4 py-3 bg-slate-50/30 border border-slate-100 rounded-xl outline-none text-xs font-bold">
+                                    </div>
+                                    
+                                    <div class="pt-4 border-t border-slate-100 space-y-4">
+                                        <input name="paymentRef" placeholder="Transaction Reference (Optional)" class="w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm input-focus-ring">
+                                        <label class="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 rounded-2xl hover:bg-blue-50 transition-colors">
+                                            <input type="checkbox" name="paidConfirmed" class="w-5 h-5 rounded-lg border-2 border-slate-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">I have transferred the membership fee</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <input name="childrenNames" placeholder="Children Names" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-transparent rounded-xl outline-none font-bold text-sm input-focus-ring">
-                            </div>
-                            <button type="submit" id="submit-btn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] text-xs uppercase tracking-[0.2em] mt-2">
-                                Submit Registration
-                            </button>
-                        </form>
+                                <button type="submit" id="submit-btn" class="w-full bg-slate-900 hover:bg-black text-white font-black py-5 rounded-2xl shadow-xl transition-all active:scale-[0.98] text-xs uppercase tracking-[0.2em] mt-4">
+                                    Complete Registration
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- View: Admin Login -->
-        <section id="view-admin-login" class="hidden max-w-md mx-auto mt-12 md:mt-20 animate-in fade-in zoom-in duration-300">
-            <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-slate-200/60 text-center">
-                <div class="w-16 h-16 bg-slate-50 text-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-slate-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <section id="view-admin-login" class="hidden max-w-md mx-auto mt-20 animate-in fade-in zoom-in duration-300">
+            <div class="bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-100 text-center">
+                <div class="w-20 h-20 bg-slate-900 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-slate-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
-                <h2 class="text-2xl font-bold mb-1 text-slate-900 tracking-tight">Admin Portal</h2>
-                <p class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-8">Authorised Only</p>
+                <h2 class="text-2xl font-black mb-1 text-slate-900">SMA Admin Access</h2>
+                <p class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-10">Secure Management Portal</p>
                 <form onsubmit="handleLogin(event)">
-                    <input id="admin-pw" type="password" class="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl mb-6 text-center text-xl font-bold tracking-widest outline-none input-focus-ring" placeholder="••••">
-                    <button class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-all shadow-lg text-xs uppercase tracking-widest">Secure Unlock</button>
-                    <button type="button" onclick="showView('form')" class="mt-6 text-slate-400 hover:text-slate-600 font-bold text-[10px] uppercase tracking-widest">Return to form</button>
+                    <input id="admin-pw" type="password" class="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center text-2xl font-bold tracking-[0.3em] outline-none input-focus-ring mb-6" placeholder="••••" required>
+                    <button id="login-btn" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl hover:bg-black transition-all shadow-xl text-xs uppercase tracking-[0.2em]">Unlock Database</button>
                 </form>
             </div>
         </section>
 
         <!-- View: Admin Panel -->
-        <section id="view-admin-panel" class="hidden space-y-8 animate-in fade-in slide-in-from-bottom-4">
-            <div class="flex flex-col lg:flex-row gap-8 justify-between items-start">
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Dashboard</h1>
-                    <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-0.5">SMA Registry Management</p>
+        <section id="view-admin-panel" class="hidden space-y-10 animate-in fade-in slide-in-from-bottom-6">
+            <div class="flex flex-col lg:flex-row gap-8 justify-between items-center">
+                <div class="text-center lg:text-left">
+                    <h1 class="text-3xl font-black text-slate-900 tracking-tight">Registry Dashboard</h1>
+                    <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Real-time member tracking</p>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 w-full lg:w-auto">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="p-3 rounded-xl bg-blue-50 text-blue-600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
-                        <div><p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Members</p><p id="stat-members" class="text-lg font-bold">0</p></div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
+                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Total</p>
+                        <p id="stat-members" class="text-2xl font-black text-slate-900">0</p>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="p-3 rounded-xl bg-rose-50 text-rose-600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div>
-                        <div><p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Families</p><p id="stat-families" class="text-lg font-bold">0</p></div>
+                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Verified</p>
+                        <p id="stat-paid" class="text-2xl font-black text-emerald-600">0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Pending</p>
+                        <p id="stat-pending" class="text-2xl font-black text-amber-600">0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Funds</p>
+                        <p id="stat-revenue" class="text-2xl font-black text-blue-600">$0</p>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col md:flex-row justify-between items-stretch gap-4">
-                <div class="flex gap-2">
-                    <button onclick="exportCSV()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-colors">Export CSV</button>
-                    <button onclick="logout()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-colors">Logout</button>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex gap-3 w-full md:w-auto">
+                    <button onclick="exportCSV()" class="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-black">Export CSV</button>
+                    <button onclick="logout()" class="flex-1 md:flex-none px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest">Logout</button>
                 </div>
-                <div class="relative">
-                    <input id="search-input" type="text" placeholder="Filter..." oninput="filterTable()" class="w-full md:w-64 pl-4 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-bold text-sm shadow-sm">
+                <div class="relative w-full md:w-80">
+                    <input id="search-input" type="text" placeholder="Search by name or email..." oninput="filterTable()" class="w-full pl-6 pr-6 py-4 bg-white border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 font-bold text-sm shadow-sm transition-all">
                 </div>
             </div>
 
-            <div class="bg-white rounded-[1.5rem] border border-slate-200/60 shadow-xl overflow-hidden">
+            <div class="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-2xl overflow-hidden">
                 <div class="overflow-x-auto hide-scrollbar">
-                    <table class="w-full text-left min-w-[700px]">
-                        <thead class="bg-slate-50/50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <table class="w-full text-left min-w-[950px]">
+                        <thead class="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                             <tr>
-                                <th class="px-6 py-4">Member</th>
-                                <th class="px-6 py-4">Profession</th>
-                                <th class="px-6 py-4">Family</th>
-                                <th class="px-6 py-4 text-right">Action</th>
+                                <th class="px-8 py-5">Primary Member</th>
+                                <th class="px-8 py-5">Family & Profession</th>
+                                <th class="px-8 py-5">Verification</th>
+                                <th class="px-8 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="member-table-body" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="member-table-body" class="divide-y divide-slate-100 font-medium"></tbody>
                     </table>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="max-w-7xl mx-auto px-4 py-12 border-t border-slate-100 mt-8 text-center md:text-left">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 opacity-50 grayscale">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">© 2024 SMA Shepparton</span>
-            <div class="flex gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <a href="#" onclick="showView('form')">Public Form</a>
-                <a href="#" onclick="showView('admin-login')">Admin Portal</a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuration and Initialization
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sma-registry-production';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-sma-app';
         
         let members = [];
         let currentUser = null;
         let unsubscribeSnap = null;
+        let isAdmin = false;
+        let pendingDeleteId = null;
 
-        // AUTHENTICATION PROTOCOL (MANDATORY RULE 3)
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -213,179 +319,202 @@
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (error) {
-                console.error("Auth error:", error);
-                showToast("Connection error. Please refresh.", false);
-            }
+            } catch (error) { console.error("Auth error:", error); }
         };
 
-        // Listen for Auth State Changes
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            if (user) {
-                setupFirestoreSync();
-            } else {
-                // If sign out happens or session expires, clean up listeners
-                if (unsubscribeSnap) {
-                    unsubscribeSnap();
-                    unsubscribeSnap = null;
-                }
-            }
+            if (user) setupFirestoreSync();
         });
 
-        // FIRESTORE SYNC PROTOCOL (MANDATORY RULE 1 & 2)
         const setupFirestoreSync = () => {
             if (!currentUser) return;
-
             const collPath = collection(db, 'artifacts', appId, 'public', 'data', 'members');
-            
-            // Clean up existing listener if any
             if (unsubscribeSnap) unsubscribeSnap();
-
-            // Setup real-time listener with proper error handling
             unsubscribeSnap = onSnapshot(collPath, (snap) => {
                 members = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderStats();
                 renderTable();
-            }, (err) => {
-                console.error("Sync error:", err);
-                // Note: Missing permissions usually happens if the user isn't authed yet 
-                // or if the path is incorrect. Rule 1 ensures the path is valid.
-            });
+            }, (err) => console.error("Sync error:", err));
         };
 
-        // View Controller
         window.showView = (id) => {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.getElementById(`view-${id}`).classList.remove('hidden');
-            window.scrollTo(0, 0);
+            if (id === 'admin-login') {
+                if (isAdmin) showView('admin-panel');
+                else document.getElementById('admin-pw').value = "";
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        window.toggleMobileMenu = () => {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        };
+        window.toggleMobileMenu = () => document.getElementById('mobile-menu').classList.toggle('hidden');
 
-        // UI Toast
         const showToast = (msg, success = true) => {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toast-message');
-            toast.className = `fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 ${success ? 'bg-emerald-600' : 'bg-rose-600'}`;
+            toast.className = `fixed top-24 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 ${success ? 'bg-blue-600' : 'bg-rose-600'}`;
             toastMsg.innerText = msg;
             toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 4000);
+            setTimeout(() => toast.classList.add('hidden'), 3000);
         };
 
         window.handleLogin = (e) => {
             e.preventDefault();
-            const pw = document.getElementById('admin-pw').value;
-            if (pw === "admin123") {
+            if (document.getElementById('admin-pw').value.trim() === "admin123") {
+                isAdmin = true;
                 showView('admin-panel');
-                showToast("Access Granted");
+                showToast("Admin Session Started");
+                document.getElementById('nav-admin-btn').innerText = "Dashboard";
             } else {
-                showToast("Invalid Key", false);
+                showToast("Incorrect Password", false);
             }
         };
 
-        window.logout = () => showView('form');
+        window.logout = () => {
+            isAdmin = false;
+            document.getElementById('nav-admin-btn').innerText = "Admin Panel";
+            showView('form');
+        };
 
-        // CRUD Operations
+        window.resetRegistrationForm = () => {
+            document.getElementById('form-container').classList.remove('hidden');
+            document.getElementById('registration-success').classList.add('hidden');
+            document.getElementById('edit-header').classList.add('hidden');
+            document.getElementById('registry-form').reset();
+            document.getElementById('form-member-id').value = "";
+            document.getElementById('submit-btn').innerText = "Complete Registration";
+        };
+
+        window.cancelEdit = () => {
+            resetRegistrationForm();
+            showView('admin-panel');
+        };
+
+        window.editEntry = (id) => {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+            showView('form');
+            document.getElementById('edit-header').classList.remove('hidden');
+            document.getElementById('form-member-id').value = member.id;
+            const f = document.getElementById('registry-form');
+            f.name.value = member.name || '';
+            f.email.value = member.email || '';
+            f.mobile.value = member.mobile || '';
+            f.profession.value = member.profession || '';
+            f.spouse.value = member.spouse || '';
+            f.spouseProfession.value = member.spouseProfession || '';
+            f.paymentRef.value = member.paymentRef || '';
+            f.paidConfirmed.checked = !!member.paidConfirmed;
+            const kids = member.childrenList || [];
+            f.child1.value = kids[0] || '';
+            f.child2.value = kids[1] || '';
+            f.child3.value = kids[2] || '';
+            f.child4.value = kids[3] || '';
+            document.getElementById('submit-btn').innerText = "Update Record";
+        };
+
+        // Custom Delete Logic
+        window.openDeleteModal = (id) => {
+            if (!isAdmin) return;
+            pendingDeleteId = id;
+            document.getElementById('delete-member-name').innerText = members.find(m => m.id === id)?.name || 'Member';
+            document.getElementById('delete-modal').classList.remove('hidden');
+        };
+
+        window.closeDeleteModal = () => {
+            document.getElementById('delete-modal').classList.add('hidden');
+            pendingDeleteId = null;
+        };
+
+        document.getElementById('confirm-delete-btn').onclick = async () => {
+            if (!pendingDeleteId || !isAdmin) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', pendingDeleteId));
+                showToast("Record Removed", false);
+                closeDeleteModal();
+            } catch (err) { showToast("Delete failed", false); }
+        };
+
         document.getElementById('registry-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (!currentUser) {
-                showToast("Authenticating... try again in a moment.", false);
-                return;
-            }
-
             const btn = document.getElementById('submit-btn');
+            const mid = document.getElementById('form-member-id').value;
             btn.disabled = true;
             btn.innerText = "Processing...";
-            
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            data.childrenCount = Number(data.childrenCount) || 0;
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            data.paidConfirmed = e.target.paidConfirmed.checked;
+            data.isVerifiedPaid = mid ? (members.find(m => m.id === mid)?.isVerifiedPaid || false) : false;
+            data.childrenList = [data.child1, data.child2, data.child3, data.child4].filter(Boolean);
             data.timestamp = serverTimestamp();
-
+            delete data.id; delete data.child1; delete data.child2; delete data.child3; delete data.child4;
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), data);
-                showToast("Successfully Registered!");
-                e.target.reset();
-            } catch (err) {
-                console.error("Submission failed:", err);
-                showToast("Submission failed", false);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Submit Registration";
-            }
+                if (mid) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', mid), data);
+                else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), data);
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('registration-success').classList.remove('hidden');
+                if (isAdmin && mid) setTimeout(() => showView('admin-panel'), 1200);
+            } catch (err) { showToast("Save failed", false); }
+            finally { btn.disabled = false; }
         };
 
-        window.deleteEntry = async (id) => {
-            if (!currentUser) return;
-            if (!confirm("Are you sure?")) return;
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', id));
-                showToast("Entry Deleted");
-            } catch (err) {
-                showToast("Delete failed", false);
-            }
+        window.togglePaymentStatus = async (id, cur) => {
+            if (!isAdmin) return;
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', id), { isVerifiedPaid: !cur });
         };
 
-        // Rendering
         const renderStats = () => {
-            document.getElementById('member-total').innerText = members.length;
-            document.getElementById('stat-count').innerText = members.length;
-            document.getElementById('stat-members').innerText = members.length;
-            const families = members.filter(m => m.spouse || m.childrenCount > 0).length;
-            document.getElementById('stat-families').innerText = families;
+            const count = members.length;
+            document.getElementById('stat-members').innerText = count;
+            document.getElementById('member-total').innerText = count;
+            document.getElementById('stat-count').innerText = count;
+            const paid = members.filter(m => m.isVerifiedPaid).length;
+            document.getElementById('stat-paid').innerText = paid;
+            document.getElementById('stat-pending').innerText = count - paid;
+            document.getElementById('stat-revenue').innerText = `$${paid * 60}`;
         };
 
         window.filterTable = () => renderTable();
 
         const renderTable = () => {
             const tbody = document.getElementById('member-table-body');
-            const queryVal = document.getElementById('search-input').value.toLowerCase();
-            
-            const filtered = members.filter(m => 
-                (m.name || '').toLowerCase().includes(queryVal) || 
-                (m.profession || '').toLowerCase().includes(queryVal) ||
-                (m.email || '').toLowerCase().includes(queryVal)
-            );
-
-            tbody.innerHTML = filtered.map(m => `
-                <tr class="hover:bg-slate-50/50 group transition-colors">
-                    <td class="px-6 py-5">
-                        <div class="font-bold text-slate-900 text-sm">${m.name || 'Anonymous'}</div>
-                        <div class="text-[10px] font-semibold text-slate-400 mt-0.5">${m.email || '-'} • ${m.mobile || '-'}</div>
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = members.filter(m => (m.name||'').toLowerCase().includes(q) || (m.email||'').toLowerCase().includes(q));
+            tbody.innerHTML = filtered.map(m => {
+                const paid = !!m.isVerifiedPaid;
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-8 py-5">
+                        <div class="font-black text-slate-900 text-sm">${m.name || 'Unknown'}</div>
+                        <div class="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-wider">${m.email || 'No Email'}</div>
                     </td>
-                    <td class="px-6 py-5">
-                        <span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-bold uppercase tracking-wide">${m.profession || 'Member'}</span>
+                    <td class="px-8 py-5">
+                        <div class="text-[11px] font-black text-slate-600">${m.spouse ? 'Partner: ' + m.spouse : 'Solo'}</div>
+                        <div class="text-[9px] font-black text-blue-500 uppercase mt-1 tracking-[0.15em]">${m.profession || 'Not Specified'}</div>
                     </td>
-                    <td class="px-6 py-5">
-                        <div class="text-[11px] font-bold text-slate-600">${m.spouse ? '❤ ' + m.spouse : ''}</div>
-                        <div class="text-[10px] text-slate-400">${m.childrenCount > 0 ? 'Children: ' + m.childrenCount : ''}</div>
-                    </td>
-                    <td class="px-6 py-5 text-right">
-                        <button onclick="deleteEntry('${m.id}')" class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <td class="px-8 py-5">
+                        <button onclick="togglePaymentStatus('${m.id}', ${paid})" class="px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest ${paid ? 'status-pill-paid' : 'status-pill-pending'}">
+                            ${paid ? 'Verified' : 'Unpaid'}
                         </button>
                     </td>
-                </tr>
-            `).join('');
+                    <td class="px-8 py-5 text-right flex justify-end gap-2">
+                        <button onclick="editEntry('${m.id}')" class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button onclick="openDeleteModal('${m.id}')" class="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    </td>
+                </tr>`;
+            }).join('');
         };
 
         window.exportCSV = () => {
-            const headers = "Name,Email,Mobile,Profession,Spouse,ChildrenCount,ChildrenNames\n";
-            const csv = members.map(m => `"${m.name || ''}","${m.email || ''}","${m.mobile || ''}","${m.profession || ''}","${m.spouse || ''}","${m.childrenCount || 0}","${m.childrenNames || ''}"`).join("\n");
-            const blob = new Blob([headers + csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
+            const h = "Name,Email,Mobile,Profession,Spouse,SpouseProfession,ChildrenNames,PaidStatus\n";
+            const c = members.map(m => `"${m.name}","${m.email}","${m.mobile}","${m.profession}","${m.spouse}","${m.spouseProfession}","${(m.childrenList || []).join(';')}","${m.isVerifiedPaid ? 'PAID' : 'PENDING'}"`).join("\n");
             const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `SMA_Registry_${new Date().toISOString().split('T')[0]}.csv`);
+            a.href = window.URL.createObjectURL(new Blob([h + c], { type: 'text/csv' }));
+            a.download = `SMA_Registry_${new Date().toLocaleDateString()}.csv`;
             a.click();
         };
 
-        // Initialize Auth on Load
         window.addEventListener('load', initAuth);
-
     </script>
 </body>
 </html>
