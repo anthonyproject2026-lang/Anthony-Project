@@ -23,6 +23,12 @@
         .logo-glow {
             box-shadow: 0 0 60px -10px rgba(37, 99, 235, 0.2);
         }
+
+        /* Mobile Admin Adjustments */
+        @media (max-width: 768px) {
+            .admin-grid { display: block !important; }
+            .admin-table-container { display: none; }
+        }
     </style>
 </head>
 <body class="text-slate-900 selection:bg-blue-100 selection:text-blue-900">
@@ -66,7 +72,7 @@
         </div>
         <div id="mobile-menu" class="hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl p-4 flex flex-col gap-2">
             <button onclick="showView('form'); toggleMobileMenu()" class="w-full py-3 px-4 text-left font-bold text-sm text-slate-700 hover:bg-slate-50 rounded-xl">Registration Form</button>
-            <button onclick="showView('admin-login'); toggleMobileMenu()" class="w-full py-3 px-4 text-left font-bold text-sm text-slate-700 hover:bg-slate-50 rounded-xl">Admin Access</button>
+            <button id="mobile-admin-btn" onclick="showView('admin-login'); toggleMobileMenu()" class="w-full py-3 px-4 text-left font-bold text-sm text-slate-700 hover:bg-slate-50 rounded-xl">Admin Access</button>
         </div>
     </nav>
 
@@ -80,10 +86,8 @@
         <section id="view-form" class="animate-in fade-in duration-700">
             <div class="max-w-6xl mx-auto flex flex-col items-center gap-10 lg:gap-14 pt-4">
                 
-                <!-- Hero Section: Updated Logo Size and Text Size -->
                 <div class="w-full text-center space-y-8 flex flex-col items-center">
                     <div class="relative group">
-                        <!-- Logo Glow -->
                         <div class="absolute -inset-10 bg-blue-100/40 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                         <img src="https://scontent.fmel12-1.fna.fbcdn.net/v/t39.30808-6/326761430_5828990340526020_7369296547335503508_n.png?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=Yq6Q1TcrqpoQ7kNvwFk81d8&_nc_oc=AdlARv8L_j5fK1fqMV7i62IAvsckYJtF9qEaQDcBt9HFnX2pxMOZFljQ3_2H4O9Ih-k&_nc_zt=23&_nc_ht=scontent.fmel12-1.fna&_nc_gid=OuwbNU68W5hWc2g3iTPq6g&oh=00_AfpFSZ2uiPoQnNNBSfagBVCM2554tvXq7MUYB6lmOqvFCQ&oe=69733058" 
                              class="relative w-48 h-48 md:w-64 md:h-64 rounded-[3rem] shadow-2xl logo-glow transition-all duration-500 hover:scale-105 border-4 border-white" 
@@ -144,47 +148,53 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-5 bg-slate-50 border border-slate-200 rounded-[2rem] text-center">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Need help?</p>
-                            <p class="text-xs font-bold text-slate-600 mt-1">Contact association secretary</p>
-                        </div>
                     </div>
 
                     <!-- Registration Form -->
                     <div class="w-full max-w-xl relative">
+                        <!-- Success View -->
                         <div id="registration-success" class="hidden animate-in zoom-in duration-500 bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-200 text-center space-y-6">
                             <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </div>
                             <div>
-                                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Registration Saved!</h2>
+                                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Success!</h2>
                                 <p class="text-slate-500 font-medium text-sm mt-2">The record has been updated in our secure database.</p>
                             </div>
                             <button onclick="resetRegistrationForm()" class="w-full py-4 bg-slate-100 hover:bg-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest transition-colors">Register Another Person</button>
                         </div>
 
+                        <!-- Form Container -->
                         <div id="form-container" class="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-slate-200/60">
-                            <div id="edit-header" class="hidden mb-6 flex items-center justify-between bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                                <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Editing Record</span>
-                                <button onclick="cancelEdit()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+                            <!-- Duplicate/Edit Flag -->
+                            <div id="edit-header" class="hidden mb-6 flex items-center justify-between bg-amber-50 p-4 rounded-2xl border border-amber-100">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                                    <span class="text-[10px] font-black text-amber-700 uppercase tracking-widest">Existing Member Found - Updating Record</span>
+                                </div>
+                                <button type="button" onclick="cancelEdit()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600">Clear</button>
                             </div>
                             
                             <form id="registry-form" class="space-y-5">
                                 <input type="hidden" name="id" id="form-member-id">
+                                
                                 <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name <span class="text-rose-500">*</span></label>
-                                    <input name="name" required placeholder="Full Name" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email <span class="text-rose-500">*</span></label>
+                                    <input name="email" id="email-field" type="email" required placeholder="email@address.com" onblur="checkForDuplicateEmail(this.value)" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                    <p class="text-[9px] text-slate-400 font-medium ml-1">System checks for existing records based on email.</p>
                                 </div>
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-1">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email <span class="text-rose-500">*</span></label>
-                                        <input name="email" type="email" required placeholder="email@address.com" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name <span class="text-rose-500">*</span></label>
+                                        <input name="name" required placeholder="Full Name" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
                                     </div>
                                     <div class="space-y-1">
                                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile <span class="text-rose-500">*</span></label>
                                         <input name="mobile" required placeholder="0400 000 000" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
                                     </div>
                                 </div>
+
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Profession</label>
                                     <input name="profession" placeholder="e.g. Registered Nurse" class="w-full px-5 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl outline-none font-bold text-sm transition-all input-focus-ring">
@@ -241,43 +251,44 @@
         </section>
 
         <!-- View: Admin Panel -->
-        <section id="view-admin-panel" class="hidden space-y-10 animate-in fade-in slide-in-from-bottom-6">
-            <div class="flex flex-col lg:flex-row gap-8 justify-between items-center">
+        <section id="view-admin-panel" class="hidden space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-6 pb-20">
+            <div class="flex flex-col lg:flex-row gap-6 justify-between items-center">
                 <div class="text-center lg:text-left">
-                    <h1 class="text-3xl font-black text-slate-900 tracking-tight">Registry Dashboard</h1>
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Registry Dashboard</h1>
                     <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Real-time member tracking</p>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
-                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full lg:w-auto">
+                    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm text-center md:text-left">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Total</p>
-                        <p id="stat-members" class="text-2xl font-black text-slate-900">0</p>
+                        <p id="stat-members" class="text-xl md:text-2xl font-black text-slate-900">0</p>
                     </div>
-                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm text-center md:text-left">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Verified</p>
-                        <p id="stat-paid" class="text-2xl font-black text-emerald-600">0</p>
+                        <p id="stat-paid" class="text-xl md:text-2xl font-black text-emerald-600">0</p>
                     </div>
-                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm text-center md:text-left">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Pending</p>
-                        <p id="stat-pending" class="text-2xl font-black text-amber-600">0</p>
+                        <p id="stat-pending" class="text-xl md:text-2xl font-black text-amber-600">0</p>
                     </div>
-                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm text-center md:text-left">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Funds</p>
-                        <p id="stat-revenue" class="text-2xl font-black text-blue-600">$0</p>
+                        <p id="stat-revenue" class="text-xl md:text-2xl font-black text-blue-600">$0</p>
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="flex gap-3 w-full md:w-auto">
-                    <button onclick="exportCSV()" class="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-black">Export CSV</button>
-                    <button onclick="logout()" class="flex-1 md:flex-none px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest">Logout</button>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button onclick="exportCSV()" class="flex-1 md:flex-none px-4 py-3 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-black">Export CSV</button>
+                    <button onclick="logout()" class="flex-1 md:flex-none px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest">Logout</button>
                 </div>
                 <div class="relative w-full md:w-80">
-                    <input id="search-input" type="text" placeholder="Search by name or email..." oninput="filterTable()" class="w-full pl-6 pr-6 py-4 bg-white border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 font-bold text-sm shadow-sm transition-all">
+                    <input id="search-input" type="text" placeholder="Search members..." oninput="filterTable()" class="w-full pl-6 pr-6 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 font-bold text-sm shadow-sm">
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-2xl overflow-hidden">
+            <!-- Desktop View -->
+            <div class="admin-table-container bg-white rounded-[2.5rem] border border-slate-200/60 shadow-2xl overflow-hidden">
                 <div class="overflow-x-auto hide-scrollbar">
                     <table class="w-full text-left min-w-[950px]">
                         <thead class="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -292,6 +303,9 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Mobile Card View -->
+            <div id="member-mobile-grid" class="hidden admin-grid grid grid-cols-1 gap-4"></div>
         </section>
     </main>
 
@@ -338,9 +352,58 @@
             }, (err) => console.error("Sync error:", err));
         };
 
+        window.checkForDuplicateEmail = (email) => {
+            const cleanEmail = email.trim().toLowerCase();
+            if (!cleanEmail) return;
+            
+            const existing = members.find(m => (m.email || '').toLowerCase() === cleanEmail);
+            if (existing) {
+                if (document.getElementById('form-member-id').value === existing.id) return;
+                showToast("Existing record found. Loading details...", true);
+                loadEntryIntoForm(existing);
+            }
+        };
+
+        // Improved loading logic to ensure form is visible
+        window.loadEntryIntoForm = (member) => {
+            // CRITICAL FIX: Ensure the form view and the form container are visible 
+            // even if a "Success" screen was shown previously
+            document.getElementById('registration-success').classList.add('hidden');
+            document.getElementById('form-container').classList.remove('hidden');
+            
+            document.getElementById('edit-header').classList.remove('hidden');
+            document.getElementById('form-member-id').value = member.id;
+            const f = document.getElementById('registry-form');
+            
+            f.email.value = member.email || '';
+            f.name.value = member.name || '';
+            f.mobile.value = member.mobile || '';
+            f.profession.value = member.profession || '';
+            f.spouse.value = member.spouse || '';
+            f.spouseProfession.value = member.spouseProfession || '';
+            f.paymentRef.value = member.paymentRef || '';
+            f.paidConfirmed.checked = !!member.paidConfirmed;
+            
+            const kids = member.childrenList || [];
+            f.child1.value = kids[0] || '';
+            f.child2.value = kids[1] || '';
+            f.child3.value = kids[2] || '';
+            f.child4.value = kids[3] || '';
+            
+            document.getElementById('submit-btn').innerText = "Update Record";
+        };
+
         window.showView = (id) => {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(`view-${id}`).classList.remove('hidden');
+            const target = document.getElementById(`view-${id}`);
+            if (target) target.classList.remove('hidden');
+            
+            // If going back to form, make sure it's not stuck on success screen
+            if (id === 'form') {
+                const isEditing = !!document.getElementById('form-member-id').value;
+                if (!isEditing) resetRegistrationForm();
+            }
+
             if (id === 'admin-login') {
                 if (isAdmin) showView('admin-panel');
                 else document.getElementById('admin-pw').value = "";
@@ -361,11 +424,13 @@
 
         window.handleLogin = (e) => {
             e.preventDefault();
-            if (document.getElementById('admin-pw').value.trim() === "admin123") {
+            const pw = document.getElementById('admin-pw').value.trim();
+            if (pw === "admin123") {
                 isAdmin = true;
                 showView('admin-panel');
                 showToast("Admin Session Started");
                 document.getElementById('nav-admin-btn').innerText = "Dashboard";
+                document.getElementById('mobile-admin-btn').innerText = "Admin Dashboard";
             } else {
                 showToast("Incorrect Password", false);
             }
@@ -374,6 +439,7 @@
         window.logout = () => {
             isAdmin = false;
             document.getElementById('nav-admin-btn').innerText = "Admin Panel";
+            document.getElementById('mobile-admin-btn').innerText = "Admin Access";
             showView('form');
         };
 
@@ -388,33 +454,15 @@
 
         window.cancelEdit = () => {
             resetRegistrationForm();
-            showView('admin-panel');
         };
 
         window.editEntry = (id) => {
             const member = members.find(m => m.id === id);
             if (!member) return;
             showView('form');
-            document.getElementById('edit-header').classList.remove('hidden');
-            document.getElementById('form-member-id').value = member.id;
-            const f = document.getElementById('registry-form');
-            f.name.value = member.name || '';
-            f.email.value = member.email || '';
-            f.mobile.value = member.mobile || '';
-            f.profession.value = member.profession || '';
-            f.spouse.value = member.spouse || '';
-            f.spouseProfession.value = member.spouseProfession || '';
-            f.paymentRef.value = member.paymentRef || '';
-            f.paidConfirmed.checked = !!member.paidConfirmed;
-            const kids = member.childrenList || [];
-            f.child1.value = kids[0] || '';
-            f.child2.value = kids[1] || '';
-            f.child3.value = kids[2] || '';
-            f.child4.value = kids[3] || '';
-            document.getElementById('submit-btn').innerText = "Update Record";
+            loadEntryIntoForm(member);
         };
 
-        // Custom Delete Logic
         window.openDeleteModal = (id) => {
             if (!isAdmin) return;
             pendingDeleteId = id;
@@ -442,8 +490,9 @@
             const mid = document.getElementById('form-member-id').value;
             btn.disabled = true;
             btn.innerText = "Processing...";
-            const data = Object.fromEntries(new FormData(e.target).entries());
-            data.paidConfirmed = e.target.paidConfirmed.checked;
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.paidConfirmed = !!e.target.paidConfirmed.checked;
             data.isVerifiedPaid = mid ? (members.find(m => m.id === mid)?.isVerifiedPaid || false) : false;
             data.childrenList = [data.child1, data.child2, data.child3, data.child4].filter(Boolean);
             data.timestamp = serverTimestamp();
@@ -451,9 +500,17 @@
             try {
                 if (mid) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', mid), data);
                 else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), data);
+                
                 document.getElementById('form-container').classList.add('hidden');
                 document.getElementById('registration-success').classList.remove('hidden');
-                if (isAdmin && mid) setTimeout(() => showView('admin-panel'), 1200);
+                
+                // If admin, they might want to go back to dashboard after a delay
+                if (isAdmin && mid) {
+                    setTimeout(() => {
+                        resetRegistrationForm();
+                        showView('admin-panel');
+                    }, 1500);
+                }
             } catch (err) { showToast("Save failed", false); }
             finally { btn.disabled = false; }
         };
@@ -478,8 +535,14 @@
 
         const renderTable = () => {
             const tbody = document.getElementById('member-table-body');
+            const mGrid = document.getElementById('member-mobile-grid');
             const q = document.getElementById('search-input').value.toLowerCase();
-            const filtered = members.filter(m => (m.name||'').toLowerCase().includes(q) || (m.email||'').toLowerCase().includes(q));
+            const filtered = members.filter(m => 
+                (m.name||'').toLowerCase().includes(q) || 
+                (m.email||'').toLowerCase().includes(q) ||
+                (m.mobile||'').toLowerCase().includes(q)
+            );
+            
             tbody.innerHTML = filtered.map(m => {
                 const paid = !!m.isVerifiedPaid;
                 return `
@@ -502,6 +565,36 @@
                         <button onclick="openDeleteModal('${m.id}')" class="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                     </td>
                 </tr>`;
+            }).join('');
+
+            mGrid.innerHTML = filtered.map(m => {
+                const paid = !!m.isVerifiedPaid;
+                return `
+                <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-black text-slate-900 text-base">${m.name || 'Unknown'}</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${m.email || 'No Email'}</div>
+                        </div>
+                        <button onclick="togglePaymentStatus('${m.id}', ${paid})" class="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest ${paid ? 'status-pill-paid' : 'status-pill-pending'}">
+                            ${paid ? 'Verified' : 'Unpaid'}
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50">
+                        <div>
+                            <p class="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">Mobile</p>
+                            <p class="text-xs font-bold text-slate-700">${m.mobile || '-'}</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">Profession</p>
+                            <p class="text-xs font-bold text-slate-700">${m.profession || '-'}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="editEntry('${m.id}')" class="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-bold text-[10px] uppercase tracking-widest">Edit</button>
+                        <button onclick="openDeleteModal('${m.id}')" class="flex-1 py-3 bg-rose-50 text-rose-600 rounded-xl font-bold text-[10px] uppercase tracking-widest">Delete</button>
+                    </div>
+                </div>`;
             }).join('');
         };
 
