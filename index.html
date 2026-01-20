@@ -106,9 +106,14 @@
             document.getElementById('toast-message').innerText = msg;
             toastBox.className = `px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all transform duration-300 ${success ? 'bg-indigo-600' : 'bg-rose-600'}`;
             toast.classList.remove('hidden', 'opacity-0', '-translate-y-4');
+            toast.style.pointerEvents = 'auto'; // Allow clicking inside toast if needed
+            
             setTimeout(() => {
                 toast.classList.add('opacity-0', '-translate-y-4');
-                setTimeout(() => toast.classList.add('hidden'), 300);
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.style.pointerEvents = 'none'; // Ensure it's not blocking when hidden
+                }, 300);
             }, 3000);
         };
 
@@ -247,14 +252,29 @@
                 </tr>`).join('');
         };
 
-        window.addEventListener('load', initAuth);
+        // Standard event listener for start
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAuth);
+        } else {
+            initAuth();
+        }
+        
+        // Expose functions to window for onclick handlers
+        window.handleLogin = handleLogin;
+        window.logout = logout;
+        window.resetRegistrationForm = resetRegistrationForm;
+        window.editEntry = editEntry;
+        window.togglePaymentStatus = togglePaymentStatus;
+        window.renderTable = renderTable;
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
         body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        input, textarea, select { font-size: 16px !important; }
+        input, textarea, select, button { cursor: pointer; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="password"], textarea { font-size: 16px !important; cursor: text; }
+        #toast { pointer-events: none; } /* Critical: Prevent blocking clicks when not active */
     </style>
 </head>
 <body class="text-slate-800 antialiased overflow-x-hidden">
@@ -385,6 +405,7 @@
         </section>
     </main>
 
+    <!-- Toast UI with explicit pointer-events management -->
     <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[1000] hidden opacity-0 transition-all transform duration-300">
         <div id="toast-box" class="px-6 py-3 rounded-2xl shadow-2xl">
             <span id="toast-message" class="text-white font-bold text-sm"></span>
