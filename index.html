@@ -3,60 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SMA Shepparton - Member Registry</title>
+    <title>Shepparton Malayalee Association - Member Registry</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBK0XSL0_TZJjepQv87os2ikJ7Nx_smX3c",
-            authDomain: "anthony-form.firebaseapp.com",
-            projectId: "anthony-form",
-            storageBucket: "anthony-form.firebasestorage.app",
-            messagingSenderId: "803510657296",
-            appId: "1:803510657296:web:2f16dd93ede50c3312c595",
-            measurementId: "G-VTKZW577HP"
-        };
-
+        const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'anthony-form-registry';
 
         let members = [];
         let isAdmin = false;
         let pendingDeleteId = null;
-        let user = null;
         let unsubscribeSnapshot = null;
+        let adminPassword = "admin123";
+
+        // RULE 1 - Strict Paths: ALWAYS use /artifacts/{appId}/public/data/{collectionName}
+        // Ensuring collection name 'config' is clearly part of the path structure
+        const getSettingsDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'config', 'admin_settings');
+        const getMembersColRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'members');
 
         const initAuth = async () => {
             try {
+                // RULE 3 - Auth Before Queries: Wait for auth to complete
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try { await signInWithCustomToken(auth, __initial_auth_token); } 
-                    catch { await signInAnonymously(auth); }
+                    await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (err) { console.error("Auth failed:", err); }
+                console.log("Auth initialized successfully");
+            } catch (err) { 
+                console.error("Auth init failure:", err); 
+            }
         };
 
-        onAuthStateChanged(auth, (u) => {
-            user = u;
-            if (user) setupRealtimeListener();
-            else if (unsubscribeSnapshot) unsubscribeSnapshot();
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Once authenticated, fetch settings and start listeners
+                // Using a slight delay to ensure security tokens are propagated
+                setTimeout(async () => {
+                    await fetchAdminSettings();
+                    setupRealtimeListener();
+                }, 1000);
+            } else {
+                if (unsubscribeSnapshot) unsubscribeSnapshot();
+            }
         });
 
+        const fetchAdminSettings = async () => {
+            if (!auth.currentUser) return;
+            try {
+                const snap = await getDoc(getSettingsDocRef());
+                if (snap.exists()) {
+                    adminPassword = snap.data().password || "admin123";
+                }
+            } catch (err) {
+                console.warn("Settings fetch failed (likely document doesn't exist yet):", err.message);
+            }
+        };
+
         const setupRealtimeListener = () => {
-            if (!user) return;
+            if (!auth.currentUser) return;
             if (unsubscribeSnapshot) unsubscribeSnapshot();
-            const q = collection(db, 'artifacts', appId, 'public', 'data', 'members');
+            
+            const q = getMembersColRef();
             unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
                 members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderTable();
                 renderStats();
-            }, (error) => console.error("Firestore error:", error));
+            }, (error) => {
+                console.error("Listener permission error:", error);
+            });
         };
 
         window.showView = (id) => {
@@ -77,9 +99,14 @@
             }, 3000);
         };
 
-        window.handleLogin = (e) => {
+        window.handleLogin = async (e) => {
             e.preventDefault();
-            if (document.getElementById('admin-pw').value.trim() === "admin123") {
+            const enteredPw = document.getElementById('admin-pw').value.trim();
+            
+            // Final check of current settings
+            await fetchAdminSettings();
+            
+            if (enteredPw === adminPassword) {
                 isAdmin = true;
                 showView('admin-panel');
                 showToast("Admin Dashboard Active");
@@ -87,6 +114,49 @@
             } else {
                 showToast("Invalid Credentials", false);
             }
+        };
+
+        window.changeAdminPassword = async (e) => {
+            e.preventDefault();
+            const newPw = document.getElementById('new-password').value.trim();
+            const confirmPw = document.getElementById('confirm-new-password').value.trim();
+            
+            if (!auth.currentUser || !isAdmin) {
+                showToast("Permission denied: Please log in again", false);
+                return;
+            }
+            
+            if (newPw.length < 6) {
+                showToast("Password must be at least 6 characters", false);
+                return;
+            }
+            if (newPw !== confirmPw) {
+                showToast("Passwords do not match", false);
+                return;
+            }
+            
+            try {
+                // Using setDoc with merge:true ensures we create the doc if missing
+                // This is the standard pattern for updating configuration documents
+                const settingsRef = getSettingsDocRef();
+                await setDoc(settingsRef, { 
+                    password: newPw,
+                    updatedBy: auth.currentUser.uid,
+                    lastUpdated: serverTimestamp() 
+                }, { merge: true });
+                
+                adminPassword = newPw;
+                showToast("Security settings updated!");
+                document.getElementById('password-form').reset();
+                togglePasswordModal();
+            } catch (err) {
+                console.error("Update error detail:", err);
+                showToast("Permission Error: Ensure you are logged in correctly.", false);
+            }
+        };
+
+        window.togglePasswordModal = () => {
+            document.getElementById('password-modal').classList.toggle('hidden');
         };
 
         window.logout = () => {
@@ -102,7 +172,6 @@
             document.getElementById('registry-form').reset();
             document.getElementById('form-member-id').value = "";
             document.getElementById('submit-btn').innerText = "Submit Membership Details";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         window.editEntry = (id) => {
@@ -138,7 +207,7 @@
         window.closeDeleteModal = () => document.getElementById('delete-modal').classList.add('hidden');
 
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-            if (!user || !pendingDeleteId) return;
+            if (!auth.currentUser || !pendingDeleteId) return;
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', pendingDeleteId));
                 showToast("Member deleted");
@@ -148,10 +217,16 @@
 
         document.getElementById('registry-form').onsubmit = async (e) => {
             e.preventDefault();
+            if (!auth.currentUser) {
+                showToast("Reconnecting...", false);
+                await initAuth();
+                return;
+            }
             const btn = document.getElementById('submit-btn');
             const mid = document.getElementById('form-member-id').value;
             btn.disabled = true;
-            btn.innerText = "Saving...";
+            btn.innerText = "Processing...";
+            
             const formData = new FormData(e.target);
             const rawData = Object.fromEntries(formData.entries());
             const data = {
@@ -162,19 +237,34 @@
                 childrenList: [rawData.child1, rawData.child2, rawData.child3, rawData.child4].filter(v => v?.trim()),
                 updatedAt: serverTimestamp()
             };
+
             try {
-                if (mid) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', mid), data);
-                else { data.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), data); }
+                if (mid) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', mid), data);
+                    showToast("Profile Updated");
+                } else {
+                    data.createdAt = serverTimestamp();
+                    data.isVerifiedPaid = false;
+                    await addDoc(getMembersColRef(), data);
+                }
                 document.getElementById('form-container').classList.add('hidden');
                 document.getElementById('registration-success').classList.remove('hidden');
-            } catch (err) { showToast("Error saving", false); } 
-            finally { btn.disabled = false; btn.innerText = mid ? "Update Details" : "Submit Details"; }
+            } catch (err) { 
+                console.error(err);
+                showToast("Submission error. Try again.", false); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = mid ? "Update Details" : "Submit Details"; 
+            }
         };
 
         window.togglePaymentStatus = async (id, cur) => {
-            if (!isAdmin) return;
-            try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', id), { isVerifiedPaid: !cur }); } 
-            catch { showToast("Update failed", false); }
+            if (!isAdmin || !auth.currentUser) return;
+            try { 
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'members', id), { isVerifiedPaid: !cur }); 
+            } catch { 
+                showToast("Status change failed", false); 
+            }
         };
 
         const renderStats = () => {
@@ -188,7 +278,11 @@
 
         const renderTable = () => {
             const q = document.getElementById('search-input')?.value.toLowerCase() || '';
-            const filtered = members.filter(m => (m.name||'').toLowerCase().includes(q) || (m.mobile||'').toLowerCase().includes(q) || (m.email||'').toLowerCase().includes(q));
+            const filtered = members.filter(m => 
+                (m.name||'').toLowerCase().includes(q) || 
+                (m.mobile||'').toLowerCase().includes(q) || 
+                (m.email||'').toLowerCase().includes(q)
+            );
             const tbody = document.getElementById('member-table-body');
             if (!tbody) return;
 
@@ -200,7 +294,7 @@
                         <div class="text-[11px] font-bold text-indigo-600 mt-1">${m.mobile}</div>
                     </td>
                     <td class="px-4 py-4 md:px-6 min-w-[150px]">
-                        <div class="text-[11px] text-slate-700 font-semibold">${m.profession || '<span class="text-slate-300 italic">Not listed</span>'}</div>
+                        <div class="text-[11px] text-slate-700 font-semibold">${m.profession || '<span class="text-slate-300 italic">-</span>'}</div>
                         <div class="text-[10px] text-slate-400 mt-1 leading-relaxed max-w-[200px]">${m.address || '-'}</div>
                     </td>
                     <td class="px-4 py-4 md:px-6 min-w-[150px]">
@@ -219,12 +313,8 @@
                     </td>
                     <td class="px-4 py-4 md:px-6 text-right">
                         <div class="flex flex-col gap-2 items-end">
-                            <button onclick="editEntry('${m.id}')" class="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded transition-colors">
-                                EDIT
-                            </button>
-                            <button onclick="openDeleteModal('${m.id}')" class="flex items-center gap-1.5 text-[10px] font-bold text-rose-600 hover:bg-rose-50 px-2 py-1 rounded transition-colors">
-                                DELETE
-                            </button>
+                            <button onclick="editEntry('${m.id}')" class="text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 px-2 py-1 rounded">EDIT</button>
+                            <button onclick="openDeleteModal('${m.id}')" class="text-[10px] font-bold text-rose-600 hover:bg-rose-50 px-2 py-1 rounded">DELETE</button>
                         </div>
                     </td>
                 </tr>`).join('');
@@ -235,12 +325,15 @@
             const c = members.map(m => `"${m.name}","${m.email}","${m.mobile}","${m.profession||''}","${m.address||''}","${m.spouse||''}","${m.spouseProfession||''}","${(m.childrenList||[]).join(';')}","${m.isVerifiedPaid?'PAID':'PENDING'}"`).join("\n");
             const a = document.createElement('a');
             a.href = window.URL.createObjectURL(new Blob([h + c], { type: 'text/csv' }));
-            a.download = `SMA_Full_Directory.csv`;
+            a.download = `SMA_Directory.csv`;
             a.click();
         };
 
         window.filterTable = () => renderTable();
-        window.addEventListener('load', initAuth);
+        
+        window.addEventListener('load', () => {
+            initAuth();
+        });
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
@@ -249,7 +342,6 @@
         .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         .table-container::-webkit-scrollbar { height: 6px; }
         .table-container::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .logo-glow { filter: drop-shadow(0 0 15px rgba(79, 70, 229, 0.2)); }
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -257,55 +349,43 @@
     <nav class="fixed top-0 w-full z-50 glass-nav border-b border-indigo-100">
         <div class="max-w-7xl mx-auto px-4 h-16 md:h-24 flex items-center justify-between">
             <div class="flex items-center gap-3 cursor-pointer" onclick="showView('form')">
-                <div class="w-12 h-12 md:w-16 md:h-16 overflow-hidden">
+                <div class="w-12 h-12 md:w-16 md:h-16">
                     <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" 
-                         alt="SMA Logo" class="w-full h-full object-contain mix-blend-multiply">
+                         alt="SMA" class="w-full h-full object-contain mix-blend-multiply">
                 </div>
-                <div>
-                    <span class="block font-extrabold text-base md:text-xl tracking-tight text-slate-900 leading-tight">SMA Shepparton</span>
-                    <span class="block text-[8px] md:text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em]">Malayalee Association</span>
-                </div>
+                <span class="block font-extrabold text-base md:text-xl tracking-tight text-slate-900 leading-tight">Shepparton Malayalee Association</span>
             </div>
-            <button id="nav-admin-btn" onclick="showView('admin-login')" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-slate-900 text-white font-bold text-xs md:text-sm hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">Admin Access</button>
+            <button id="nav-admin-btn" onclick="showView('admin-login')" class="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-slate-900 text-white font-bold text-xs md:text-sm shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all">Admin Access</button>
         </div>
     </nav>
 
     <main class="pt-24 md:pt-36 pb-10 px-4 max-w-[1200px] mx-auto">
-        <!-- REGISTRATION FORM VIEW -->
+        <!-- FORM VIEW -->
         <section id="view-form" class="max-w-3xl mx-auto">
             <div id="form-container" class="bg-white rounded-[3rem] shadow-2xl border border-indigo-50 overflow-hidden">
-                <!-- HERO SECTION WITH HUGE LOGO -->
-                <div class="bg-gradient-to-br from-indigo-700 to-indigo-900 p-8 md:p-14 text-white text-center relative">
+                <div class="bg-gradient-to-br from-indigo-700 to-indigo-900 p-8 md:p-14 text-white text-center">
                     <div class="mb-8 flex justify-center">
-                        <div class="bg-white p-4 rounded-[2.5rem] shadow-2xl logo-glow inline-block">
-                            <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" 
-                                 alt="SMA Shepparton" class="w-28 h-28 md:w-48 md:h-48 object-contain mix-blend-multiply">
+                        <div class="bg-white p-4 rounded-[2.5rem] shadow-2xl inline-block">
+                            <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" class="w-28 h-28 md:w-48 md:h-48 object-contain mix-blend-multiply">
                         </div>
                     </div>
-                    
                     <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight">Member Registry</h1>
-                    <p class="text-indigo-100 text-sm md:text-lg font-medium max-w-md mx-auto opacity-90">Join the Shepparton Malayalee Association community today.</p>
-                    
+                    <p class="text-indigo-100 text-sm md:text-lg font-medium opacity-90">Join our growing community in Shepparton.</p>
                     <div id="edit-header" class="hidden mt-6 inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
                         <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span> Editing Member Profile
                     </div>
                 </div>
 
                 <form id="registry-form" class="p-6 md:p-12 space-y-8">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                        <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Contact Information</h2>
-                        <button type="button" onclick="resetRegistrationForm()" class="text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">RESET FORM</button>
-                    </div>
-
                     <input type="hidden" id="form-member-id">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name *</label><input type="text" name="name" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="Enter full name"></div>
-                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email *</label><input type="email" name="email" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="name@example.com"></div>
+                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name *</label><input type="text" name="name" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="Enter name"></div>
+                        <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email *</label><input type="email" name="email" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="email@address.com"></div>
                         <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mobile *</label><input type="tel" name="mobile" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="04XX XXX XXX"></div>
                         <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Profession</label><input type="text" name="profession" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all" placeholder="Occupation"></div>
                     </div>
                     
-                    <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Home Address</label><textarea name="address" rows="2" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all resize-none" placeholder="Residential Address in Shepparton Area"></textarea></div>
+                    <div class="space-y-1.5"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Home Address</label><textarea name="address" rows="2" class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all resize-none" placeholder="Address"></textarea></div>
 
                     <div class="pt-8 border-t border-slate-100 space-y-6">
                         <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Family Details</h2>
@@ -332,27 +412,17 @@
                                 <span class="text-4xl font-extrabold">$60.00</span>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="bg-white/10 p-4 rounded-2xl border border-white/10"><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">Account Name</p><p class="text-xs font-bold truncate">SMA Shepparton</p></div>
+                                <div class="bg-white/10 p-4 rounded-2xl border border-white/10"><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">Account Name</p><p class="text-xs font-bold truncate">Shepparton Malayalee Association</p></div>
                                 <div class="bg-white/10 p-4 rounded-2xl border border-white/10"><p class="text-[9px] font-black text-indigo-200 uppercase mb-1">BSB / Account</p><p class="text-xs font-bold">803078 / 100105317</p></div>
                             </div>
                         </div>
-                        
                         <label class="p-6 bg-indigo-50 rounded-3xl border-2 border-indigo-100 flex items-start gap-5 cursor-pointer hover:bg-indigo-100/50 transition-colors">
                             <input type="checkbox" name="paidConfirmed" class="mt-1 w-6 h-6 rounded-lg border-indigo-300 text-indigo-600 focus:ring-indigo-500">
                             <span class="text-sm font-bold text-indigo-950 leading-snug">I confirm that I have transferred the membership fee via bank transfer.</span>
                         </label>
                     </div>
                     
-                    <button type="submit" id="submit-btn" class="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-extrabold text-xl shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 active:scale-[0.98] transition-all">Submit Registry Entry</button>
-
-                    <!-- NEW DISCLAIMER TEXT -->
-                    <div class="pt-10 text-center">
-                        <p class="text-[9px] md:text-[10px] text-slate-400 font-medium leading-relaxed max-w-sm mx-auto uppercase tracking-tighter">
-                            Please note: SHEMA encourages you to become a paid member; however, this is completely optional. 
-                            If you choose to make a payment, please use <span class="text-indigo-600 font-black">"Membership"</span> as the reference. 
-                            The membership is valid until <span class="text-slate-600 font-bold">31/12/2026</span>.
-                        </p>
-                    </div>
+                    <button type="submit" id="submit-btn" class="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-extrabold text-xl shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all">Submit Details</button>
                 </form>
             </div>
 
@@ -360,9 +430,9 @@
                 <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </div>
-                <h2 class="text-3xl font-extrabold text-slate-900 mb-3">Thank You!</h2>
-                <p class="text-slate-500 mb-12 text-lg font-medium">Your membership details have been securely updated.</p>
-                <button onclick="resetRegistrationForm()" class="w-full max-w-sm py-5 bg-slate-900 text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors">Register Another Member</button>
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-3">Submission Received!</h2>
+                <p class="text-slate-500 mb-12 text-lg font-medium">Thank you for updating your membership information.</p>
+                <button onclick="resetRegistrationForm()" class="w-full max-w-sm py-5 bg-slate-900 text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors">Submit Another</button>
             </div>
         </section>
 
@@ -371,76 +441,68 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] shadow-xl border border-indigo-50">
                 <div class="flex items-center gap-4">
                     <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" class="w-16 h-16 object-contain mix-blend-multiply">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-slate-900">Member Database</h1>
-                        <p class="text-indigo-600 font-bold uppercase text-[10px] tracking-widest">Management System</p>
-                    </div>
+                    <h1 class="text-2xl font-extrabold text-slate-900">Admin Dashboard</h1>
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="exportCSV()" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">Export Data</button>
-                    <button onclick="logout()" class="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Logout</button>
+                <div class="flex gap-2">
+                    <button onclick="exportCSV()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700">Export</button>
+                    <button onclick="togglePasswordModal()" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-800">Security</button>
+                    <button onclick="logout()" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200">Logout</button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Members</p><p id="stat-members" class="text-3xl font-extrabold text-slate-900">0</p></div>
-                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Verified Paid</p><p id="stat-paid" class="text-3xl font-extrabold text-emerald-600">0</p></div>
-                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Unverified</p><p id="stat-pending" class="text-3xl font-extrabold text-amber-600">0</p></div>
-                <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl"><p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Collection</p><p id="stat-total-payments" class="text-3xl font-extrabold">$0</p></div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Members</p><p id="stat-members" class="text-3xl font-extrabold text-slate-900">0</p></div>
+                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Paid Verified</p><p id="stat-paid" class="text-3xl font-extrabold text-emerald-600">0</p></div>
+                <div class="bg-white p-6 rounded-[2rem] border border-indigo-50 shadow-md text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Unpaid</p><p id="stat-pending" class="text-3xl font-extrabold text-amber-600">0</p></div>
+                <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl text-center"><p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Total Fee</p><p id="stat-total-payments" class="text-3xl font-extrabold">$0</p></div>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-2xl border border-indigo-50 overflow-hidden">
-                <div class="p-6 md:p-8 border-b border-indigo-50 bg-slate-50/50">
-                    <div class="relative w-full md:w-full">
-                        <input type="text" id="search-input" oninput="filterTable()" placeholder="Search directory by name, mobile, or email..." class="w-full pl-6 pr-5 py-4 bg-white border-2 border-slate-100 rounded-2xl text-base font-medium shadow-sm focus:border-indigo-500 transition-all">
-                    </div>
-                </div>
-                
-                <div class="overflow-x-auto table-container">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50/80 text-slate-500 font-black uppercase text-[10px] tracking-widest border-b border-slate-100">
-                            <tr>
-                                <th class="px-8 py-6">Member Identity</th>
-                                <th class="px-8 py-6">Work & Residence</th>
-                                <th class="px-8 py-6">Family Record</th>
-                                <th class="px-8 py-6 text-center">Status</th>
-                                <th class="px-8 py-6 text-right">Admin</th>
-                            </tr>
-                        </thead>
-                        <tbody id="member-table-body" class="divide-y divide-slate-50"></tbody>
-                    </table>
-                </div>
+                <div class="p-6 bg-slate-50/50"><input type="text" id="search-input" oninput="filterTable()" placeholder="Search members..." class="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl font-medium focus:border-indigo-500 transition-all"></div>
+                <div class="overflow-x-auto table-container"><table class="w-full text-left text-sm"><thead class="bg-slate-50/80 text-slate-500 font-black uppercase text-[10px] tracking-widest border-b border-slate-100"><tr><th class="px-8 py-6">Identity</th><th class="px-8 py-6">Occupation</th><th class="px-8 py-6">Family</th><th class="px-8 py-6 text-center">Status</th><th class="px-8 py-6 text-right">Actions</th></tr></thead><tbody id="member-table-body" class="divide-y divide-slate-50"></tbody></table></div>
             </div>
         </section>
 
-        <!-- ADMIN LOGIN VIEW -->
+        <!-- LOGIN VIEW -->
         <section id="view-admin-login" class="hidden">
             <div class="max-w-md mx-auto bg-white p-12 rounded-[3rem] shadow-2xl text-center border border-indigo-50">
-                <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" class="w-24 h-24 mx-auto mb-8 object-contain mix-blend-multiply logo-glow">
-                <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Admin Security</h2>
-                <p class="text-slate-500 text-sm mb-10 font-medium">Please enter your password to continue.</p>
+                <img src="https://scontent.fmel15-2.fna.fbcdn.net/v/t39.30808-1/326761430_5828990340526020_7369296547335503508_n.png?stp=c80.0.480.480a_dst-png_s200x200&_nc_cat=106&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=IeM_Un7-WxYQ7kNvwFAqA08&_nc_oc=Adlb-N8wKyMdJ5UXbPUmtaNp_EYuUMObbGqrFPi-s67Mj2Z-2a_lWe7c0NmO6DsotN8&_nc_zt=24&_nc_ht=scontent.fmel15-2.fna&_nc_gid=lK2tUnkHNk1MXdBKDLMOzw&oh=00_AfoQ0qMATii5s3eSd3gL91eDW7vvZf7jytOtegyIw1-69A&oe=6974C056" class="w-24 h-24 mx-auto mb-8 object-contain mix-blend-multiply">
+                <h2 class="text-2xl font-extrabold text-slate-900 mb-8">Admin Access</h2>
                 <form onsubmit="handleLogin(event)" class="space-y-4">
-                    <input type="password" id="admin-pw" placeholder="••••••••" class="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center text-xl font-bold tracking-[0.5em] focus:border-indigo-500 transition-all">
-                    <button type="submit" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-extrabold shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">Verify & Login</button>
-                    <button type="button" onclick="showView('form')" class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-6 hover:text-indigo-600 transition-colors">Return to Front Page</button>
+                    <input type="password" id="admin-pw" placeholder="Password" class="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold focus:border-indigo-500 transition-all">
+                    <button type="submit" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-extrabold shadow-xl hover:bg-indigo-700 transition-all">Login</button>
+                    <button type="button" onclick="showView('form')" class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-6">Cancel</button>
                 </form>
             </div>
         </section>
     </main>
 
-    <div id="toast" class="hidden opacity-0 z-[500]">
-        <span id="toast-message" class="text-white font-bold text-sm"></span>
-    </div>
+    <div id="toast" class="hidden opacity-0 z-[500]"><span id="toast-message" class="text-white font-bold text-sm"></span></div>
 
     <div id="delete-modal" class="fixed inset-0 z-[600] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
         <div class="relative w-full max-w-sm p-10 bg-white rounded-[3rem] shadow-2xl text-center">
             <h3 class="text-2xl font-extrabold mb-3 text-slate-900">Delete Entry?</h3>
-            <p class="text-slate-500 mb-10 text-sm leading-relaxed">This action will permanently remove <span id="delete-member-name" class="font-bold text-slate-900"></span> from the Association directory.</p>
+            <p class="text-slate-500 mb-10 text-sm"><span id="delete-member-name" class="font-bold text-slate-900"></span> will be removed.</p>
             <div class="flex gap-4">
-                <button id="confirm-delete-btn" class="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-bold hover:bg-rose-700 transition-colors">Delete</button>
-                <button onclick="closeDeleteModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-colors">Cancel</button>
+                <button id="confirm-delete-btn" class="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-bold">Delete</button>
+                <button onclick="closeDeleteModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <div id="password-modal" class="fixed inset-0 z-[600] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
+        <div class="relative w-full max-w-md p-10 bg-white rounded-[3rem] shadow-2xl">
+            <h3 class="text-2xl font-extrabold mb-6 text-slate-900 text-center">Update Password</h3>
+            <form id="password-form" onsubmit="changeAdminPassword(event)" class="space-y-4">
+                <input type="password" id="new-password" placeholder="New Password" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500">
+                <input type="password" id="confirm-new-password" placeholder="Confirm Password" required class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500">
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold">Update</button>
+                    <button type="button" onclick="togglePasswordModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
