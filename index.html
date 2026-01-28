@@ -213,7 +213,7 @@
 
         window.handleLogin = (e) => {
             e.preventDefault();
-            if (document.getElementById('admin-pw').value === 'admin12345') {
+            if (document.getElementById('admin-pw').value === 'admin1231') {
                 isAdmin = true;
                 sessionStorage.setItem('sma_admin_session', 'active');
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
