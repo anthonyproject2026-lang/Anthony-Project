@@ -61,6 +61,14 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .toast-active { transform: translate(-50%, -20px); opacity: 1 !important; }
+        
+        .member-row {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 
     <script type="module">
@@ -163,6 +171,50 @@
             }, 3000);
         };
 
+        // Household Management Logic
+        window.updateRowVisibility = (select) => {
+            const row = select.closest('.member-row');
+            const ageSelectContainer = row.querySelector('.age-select-container');
+            if (select.value === 'Parent') {
+                ageSelectContainer.classList.add('hidden');
+                // Ensure parent defaults to Adult in background
+                ageSelectContainer.querySelector('select').value = 'Adult';
+            } else {
+                ageSelectContainer.classList.remove('hidden');
+            }
+        };
+
+        window.addMemberRow = (type = 'Child', name = '', age = 'Minor') => {
+            const container = document.getElementById('household-container');
+            const div = document.createElement('div');
+            div.className = 'member-row flex flex-col md:flex-row gap-2 items-start md:items-center mb-4 bg-white/20 p-3 rounded-2xl border border-white/30';
+            
+            const isParent = type === 'Parent';
+            
+            div.innerHTML = `
+                <div class="flex gap-2 w-full md:w-auto flex-1">
+                    <select name="h_type" onchange="updateRowVisibility(this)" class="w-24 px-3 py-3 bg-white border-none rounded-xl text-[10px] font-black uppercase text-slate-700 outline-none">
+                        <option value="Child" ${type === 'Child' ? 'selected' : ''}>Child</option>
+                        <option value="Parent" ${isParent ? 'selected' : ''}>Parent</option>
+                        <option value="Other" ${type === 'Other' ? 'selected' : ''}>Other</option>
+                    </select>
+                    <input type="text" name="h_name" value="${name}" placeholder="Full Name" class="flex-1 px-4 py-3 bg-white border-none rounded-xl text-xs font-bold text-slate-700 outline-none">
+                </div>
+                <div class="flex gap-2 w-full md:w-auto items-center">
+                    <div class="age-select-container ${isParent ? 'hidden' : ''} flex-1 md:w-32">
+                        <select name="h_age" class="w-full px-3 py-3 bg-white border-none rounded-xl text-[10px] font-black uppercase text-slate-700 outline-none">
+                            <option value="Minor" ${age === 'Minor' ? 'selected' : ''}>Minor (<18)</option>
+                            <option value="Adult" ${age === 'Adult' || isParent ? 'selected' : ''}>Adult (18+)</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="this.closest('.member-row').remove()" class="w-10 h-10 flex items-center justify-center bg-white/50 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        };
+
         window.handleSubmitConfirm = (e) => {
             e.preventDefault();
             document.getElementById('confirm-submit-modal').classList.remove('hidden');
@@ -175,6 +227,21 @@
             const formData = new FormData(form);
             const memberId = document.getElementById('form-member-id').value;
 
+            // Extract dynamic household members
+            const types = formData.getAll('h_type');
+            const names = formData.getAll('h_name');
+            const ages = formData.getAll('h_age');
+            
+            // Logic to handle hidden inputs (Parents are always Adults)
+            const householdMembers = types.map((type, i) => {
+                const ageCategory = type === 'Parent' ? 'Adult' : ages[i];
+                return { 
+                    type, 
+                    name: names[i],
+                    ageCategory: ageCategory 
+                };
+            }).filter(m => m.name.trim());
+
             const data = {
                 name: formData.get('name'),
                 email: formData.get('email').toLowerCase().trim(),
@@ -183,7 +250,8 @@
                 address: formData.get('address'),
                 spouse: formData.get('spouse'),
                 spouseProfession: formData.get('spouseProfession'),
-                childrenList: [1, 2, 3, 4].map(i => formData.get(`child${i}`)).filter(Boolean),
+                householdMembers: householdMembers,
+                childrenList: householdMembers.filter(m => m.type === 'Child').map(m => m.name),
                 isVerifiedPaid: formData.get('paidConfirmed') === 'on',
                 submittedAt: new Date().toISOString()
             };
@@ -202,6 +270,7 @@
                 
                 showView('success');
                 form.reset();
+                document.getElementById('household-container').innerHTML = '';
                 document.getElementById('form-member-id').value = '';
             } catch (err) {
                 showToast("Submission failed.", false);
@@ -213,7 +282,7 @@
 
         window.handleLogin = (e) => {
             e.preventDefault();
-            if (document.getElementById('admin-pw').value === 'admin1231') {
+            if (document.getElementById('admin-pw').value === 'admin12345') {
                 isAdmin = true;
                 sessionStorage.setItem('sma_admin_session', 'active');
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
@@ -270,7 +339,7 @@
                         </div>
                     </div>
 
-                    ${m.spouse || (m.childrenList && m.childrenList.length > 0) ? `
+                    ${m.spouse || (m.householdMembers && m.householdMembers.length > 0) ? `
                         <div class="space-y-3 bg-white/50 p-4 rounded-2xl border border-white">
                             ${m.spouse ? `
                                 <div class="flex items-center gap-2">
@@ -279,10 +348,16 @@
                                     ${m.spouseProfession ? `<span class="text-[9px] text-slate-400 font-medium italic">(${m.spouseProfession})</span>` : ''}
                                 </div>
                             ` : ''}
-                            ${m.childrenList && m.childrenList.length > 0 ? `
+                            
+                            ${m.householdMembers ? `
                                 <div class="flex flex-wrap gap-2">
-                                    <i class="fa-solid fa-children text-sky-400 text-[10px] mt-1"></i>
-                                    ${m.childrenList.map(c => `<span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded-lg text-[10px] font-bold border border-sky-100">${c}</span>`).join('')}
+                                    <i class="fa-solid fa-people-group text-sky-400 text-[10px] mt-1"></i>
+                                    ${m.householdMembers.map(c => `
+                                        <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded-lg text-[10px] font-bold border border-sky-100 flex items-center gap-1">
+                                            <span class="opacity-50 font-normal">${c.type}:</span> 
+                                            ${c.name}
+                                            <span class="ml-1 text-[8px] px-1 bg-white rounded-md text-indigo-400">${c.ageCategory === 'Adult' ? '18+' : '<18'}</span>
+                                        </span>`).join('')}
                                 </div>
                             ` : ''}
                         </div>
@@ -317,8 +392,12 @@
             f.address.value = m.address || '';
             f.spouse.value = m.spouse || '';
             f.spouseProfession.value = m.spouseProfession || '';
-            for(let i=1; i<=4; i++) f[`child${i}`].value = '';
-            (m.childrenList || []).forEach((c, i) => { if(f[`child${i+1}`]) f[`child${i+1}`].value = c; });
+            
+            document.getElementById('household-container').innerHTML = '';
+            if (m.householdMembers && m.householdMembers.length > 0) {
+                m.householdMembers.forEach(hm => addMemberRow(hm.type, hm.name, hm.ageCategory));
+            }
+            
             document.getElementById('submit-btn').innerText = "Update Profile";
             showView('form');
         };
@@ -340,8 +419,11 @@
         };
 
         window.exportData = () => {
-            const csv = "Name,Mobile,Email,Profession,Address,Spouse,Spouse Profession,Children,Paid\n" + 
-                members.map(m => `"${m.name}","${m.mobile}","${m.email}","${m.profession}","${m.address}","${m.spouse}","${m.spouseProfession}","${(m.childrenList || []).join('; ')}",${m.isVerifiedPaid}`).join("\n");
+            const csv = "Name,Mobile,Email,Profession,Address,Spouse,Spouse Profession,Household,Paid\n" + 
+                members.map(m => {
+                    const householdStr = (m.householdMembers || []).map(h => `${h.type}:${h.name}(${h.ageCategory})`).join('; ');
+                    return `"${m.name}","${m.mobile}","${m.email}","${m.profession}","${m.address}","${m.spouse}","${m.spouseProfession}","${householdStr}",${m.isVerifiedPaid}`;
+                }).join("\n");
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -387,18 +469,17 @@
             <form id="registry-form" class="space-y-8">
                 <input type="hidden" id="form-member-id">
                 
+                <!-- Personal Data Card -->
                 <div class="bg-sky-400 rounded-[2.5rem] p-6 md:p-10 shadow-2xl shadow-sky-200/50 border-4 border-white overflow-hidden relative">
                     <div class="absolute -right-10 -top-10 text-white/10 rotate-12">
                         <i class="fa-solid fa-user-astronaut text-[140px]"></i>
                     </div>
-                    
                     <div class="flex items-center gap-3 mb-8 relative z-10">
                         <div class="w-12 h-12 rounded-2xl bg-white text-sky-500 flex items-center justify-center shadow-lg">
                             <i class="fa-solid fa-user-astronaut text-xl"></i>
                         </div>
                         <h2 class="text-xl font-extrabold text-white drop-shadow-sm">Personal Data</h2>
                     </div>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                         <div class="space-y-2">
                             <label class="text-[11px] font-black text-white uppercase tracking-[0.12em] ml-1">Full Name *</label>
@@ -423,6 +504,7 @@
                     </div>
                 </div>
 
+                <!-- Household Members Card -->
                 <div class="bg-emerald-400 rounded-[2.5rem] p-6 md:p-10 shadow-2xl shadow-emerald-200/50 border-4 border-white overflow-hidden relative">
                     <div class="absolute -right-10 -top-10 text-white/10 -rotate-12">
                         <i class="fa-solid fa-house-chimney-window text-[140px]"></i>
@@ -432,7 +514,7 @@
                         <div class="w-12 h-12 rounded-2xl bg-white text-emerald-500 flex items-center justify-center shadow-lg">
                             <i class="fa-solid fa-house-chimney-window text-xl"></i>
                         </div>
-                        <h2 class="text-xl font-extrabold text-white drop-shadow-sm">Family Members</h2>
+                        <h2 class="text-xl font-extrabold text-white drop-shadow-sm">Household Members</h2>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative z-10">
@@ -444,15 +526,22 @@
                              <label class="text-[11px] font-black text-white uppercase tracking-[0.12em] ml-1">Spouse Profession (Optional)</label>
                              <input type="text" name="spouseProfession" class="form-input w-full px-5 py-4 bg-white/95 border-none rounded-2xl text-slate-800 font-semibold" placeholder="Spouse Profession (Optional)">
                         </div>
-                        <div class="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
-                            <input type="text" name="child1" placeholder="Child 1 Name" class="px-5 py-4 bg-white/95 rounded-2xl text-sm font-semibold">
-                            <input type="text" name="child2" placeholder="Child 2 Name" class="px-5 py-4 bg-white/95 rounded-2xl text-sm font-semibold">
-                            <input type="text" name="child3" placeholder="Child 3 Name" class="px-5 py-4 bg-white/95 rounded-2xl text-sm font-semibold">
-                            <input type="text" name="child4" placeholder="Child 4 Name" class="px-5 py-4 bg-white/95 rounded-2xl text-sm font-semibold">
+                        
+                        <div class="col-span-1 md:col-span-2 pt-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="text-[11px] font-black text-white uppercase tracking-[0.12em] ml-1">Other Members (Parents/Children)</label>
+                                <button type="button" onclick="addMemberRow()" class="px-4 py-2 bg-white text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all">
+                                    <i class="fa-solid fa-plus mr-1"></i> Add Member
+                                </button>
+                            </div>
+                            <div id="household-container">
+                                <!-- Dynamic Rows injected here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Membership Card -->
                 <div class="bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
                     <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                         <div>
@@ -506,8 +595,6 @@
                     <button type="submit" id="submit-btn" class="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-xl shadow-2xl active:scale-95 hover:bg-indigo-700 transition-all uppercase tracking-widest">
                         Confirm & Register
                     </button>
-                    
-                    <!-- Disclaimer Text -->
                     <p class="text-center text-[10px] text-slate-400 font-medium px-4 leading-relaxed opacity-80">
                         Please note: SHEMA encourages you to become a paid member; however, this is completely optional. 
                         If you choose to make a payment, please use “Membership” as the reference. 
@@ -517,6 +604,7 @@
             </form>
         </section>
 
+        <!-- Success View -->
         <section id="view-success" class="hidden py-16 text-center space-y-8">
             <div class="w-32 h-32 bg-emerald-500 text-white rounded-[3rem] shadow-2xl flex items-center justify-center mx-auto rotate-6">
                 <i class="fa-solid fa-check-double text-5xl"></i>
@@ -528,6 +616,7 @@
             <button onclick="showView('form')" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest">Done</button>
         </section>
 
+        <!-- Admin View -->
         <section id="view-admin" class="hidden space-y-8">
             <header class="flex items-center justify-between">
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Admin Hub</h2>
@@ -559,6 +648,7 @@
             <div id="admin-member-list" class="space-y-6"></div>
         </section>
 
+        <!-- Login View -->
         <section id="view-login" class="hidden max-w-sm mx-auto py-20 text-center">
             <h3 class="text-2xl font-extrabold text-slate-900 mb-8 tracking-widest uppercase">Admin Lock</h3>
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -570,6 +660,7 @@
 
     </main>
 
+    <!-- Modals -->
     <div id="confirm-submit-modal" class="fixed inset-0 z-[6000] hidden">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
         <div class="relative h-full flex items-center justify-center p-6">
