@@ -212,7 +212,7 @@ window.handleLogin = async (e) => {
 
     // Fetch current password from Firestore
     try {
-        const configRef = doc(db, 'artifacts', appId, 'public', 'config', 'admin');
+        const configRef = doc(db, 'artifacts', appId, 'public', 'config');
         const snap = await getDoc(configRef);
         let validPassword = 'admin123'; // Default fallback
 
@@ -254,7 +254,7 @@ window.updateAdminPassword = async () => {
 
     try {
         if (!currentUser) await initAuth();
-        const configRef = doc(db, 'artifacts', appId, 'public', 'config', 'admin');
+        const configRef = doc(db, 'artifacts', appId, 'public', 'config');
         await setDoc(configRef, { password: newPw }, { merge: true });
         showToast("Access code updated successfully!");
         document.getElementById('new-password').value = '';
