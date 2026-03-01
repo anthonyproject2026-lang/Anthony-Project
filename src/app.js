@@ -220,7 +220,7 @@ window.handleLogin = async (e) => {
             validPassword = snap.data().password || 'admin123';
         } else {
             // Initialize if first time
-            await setDoc(configRef, { password: 'admin123' });
+            await setDoc(configRef, { password: 'admin123' }, { merge: true });
         }
 
         if (inputPw === validPassword) {
@@ -253,12 +253,14 @@ window.updateAdminPassword = async () => {
     }
 
     try {
+        if (!currentUser) await initAuth();
         const configRef = doc(db, 'artifacts', appId, 'public', 'config', 'admin');
-        await setDoc(configRef, { password: newPw });
-        showToast("Admin access granted!");
+        await setDoc(configRef, { password: newPw }, { merge: true });
+        showToast("Access code updated successfully!");
         document.getElementById('new-password').value = '';
     } catch (err) {
-        showToast("Update failed", false);
+        console.error("Password update error:", err);
+        showToast("Update failed: " + (err.code || err.message), false);
     }
 };
 
