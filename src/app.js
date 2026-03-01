@@ -277,68 +277,76 @@ window.renderAdminContent = () => {
 
     const list = document.getElementById('admin-member-list');
     list.innerHTML = filtered.map(m => `
-        <div class="bg-indigo-50/80 p-6 rounded-[2rem] border border-indigo-200/50 shadow-md flex flex-col gap-4">
+        <div class="premium-card !p-8 flex flex-col gap-6">
             <div class="flex justify-between items-start">
-                <div class="flex gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-sm">
-                        <i class="fa-solid fa-user"></i>
+                <div class="flex gap-5">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shadow-sm">
+                        <i class="fa-solid fa-user-circle text-2xl"></i>
                     </div>
                     <div>
-                        <h4 class="font-extrabold text-slate-900 leading-tight">${m.name}</h4>
-                        <p class="text-[10px] text-indigo-600 font-black uppercase tracking-widest">${m.profession || 'No Profession Listed'}</p>
+                        <h4 class="text-xl font-black text-slate-900 leading-tight">${m.name}</h4>
+                        <p class="text-[10px] text-emerald-700 font-black uppercase tracking-[0.15em] mt-1">${m.profession || 'Community Member'}</p>
                     </div>
                 </div>
-                <button onclick="togglePaid('${m.id}', ${m.isVerifiedPaid})" class="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${m.isVerifiedPaid ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-amber-400 text-white shadow-lg shadow-amber-100'}">
-                    ${m.isVerifiedPaid ? 'Verified' : 'Pending'}
+                <button onclick="togglePaid('${m.id}', ${m.isVerifiedPaid})" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${m.isVerifiedPaid ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-amber-400 text-white shadow-lg shadow-amber-500/20'}">
+                    ${m.isVerifiedPaid ? 'Verified' : 'Pending Verification'}
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-medium text-slate-600 border-b border-indigo-100 pb-4">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-phone w-4 text-indigo-500"></i>
-                    <span>${m.mobile}</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-500 border-y border-slate-100 py-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+                        <i class="fa-solid fa-phone text-[10px] text-emerald-600"></i>
+                    </div>
+                    <span class="text-slate-700 font-bold">${m.mobile}</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-envelope w-4 text-indigo-500"></i>
-                    <span class="truncate">${m.email}</span>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+                        <i class="fa-solid fa-envelope text-[10px] text-emerald-600"></i>
+                    </div>
+                    <span class="text-slate-700 font-bold truncate">${m.email}</span>
                 </div>
-                <div class="flex items-start gap-2 col-span-1 md:col-span-2">
-                    <i class="fa-solid fa-location-dot w-4 text-indigo-500 mt-0.5"></i>
-                    <span>${m.address || 'No Address Provided'}</span>
+                <div class="flex items-start gap-3 col-span-1 md:col-span-2">
+                    <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-map-marker-alt text-[10px] text-emerald-600"></i>
+                    </div>
+                    <span class="text-slate-600 leading-relaxed pt-1">${m.address || 'No Address Provided'}</span>
                 </div>
             </div>
 
             ${m.spouse || (m.householdMembers && m.householdMembers.length > 0) ? `
-                <div class="space-y-3 bg-white/50 p-4 rounded-2xl border border-white">
+                <div class="space-y-4 bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
                     ${m.spouse ? `
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-heart text-rose-400 text-[10px]"></i>
-                            <span class="text-[11px] font-bold text-slate-700">${m.spouse}</span>
-                            ${m.spouseProfession ? `<span class="text-[9px] text-slate-400 font-medium italic">(${m.spouseProfession})</span>` : ''}
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-heart text-rose-400 text-xs"></i>
+                            <span class="text-xs font-bold text-slate-700">${m.spouse}</span>
+                            ${m.spouseProfession ? `<span class="text-[10px] text-slate-400 font-medium italic">(${m.spouseProfession})</span>` : ''}
                         </div>
                     ` : ''}
                     
-                    ${m.householdMembers ? `
+                    ${m.householdMembers && m.householdMembers.length > 0 ? `
                         <div class="flex flex-wrap gap-2">
-                            <i class="fa-solid fa-people-group text-sky-400 text-[10px] mt-1"></i>
+                            <i class="fa-solid fa-people-roof text-emerald-400 text-xs mt-1 mr-1"></i>
                             ${m.householdMembers.map(c => `
-                                <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded-lg text-[10px] font-bold border border-sky-100 flex items-center gap-1">
-                                    <span class="opacity-50 font-normal">${c.type}:</span> 
+                                <span class="px-3 py-1 bg-white text-slate-700 rounded-lg text-[10px] font-extrabold border border-slate-100 flex items-center gap-2 shadow-sm">
+                                    <span class="opacity-40 uppercase text-[8px] font-black">${c.type}</span> 
                                     ${c.name}
-                                    <span class="ml-1 text-[8px] px-1 bg-white rounded-md text-indigo-400">${c.ageCategory === 'Adult' ? '18+' : '<18'}</span>
+                                    <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                    <span class="text-emerald-600">${c.ageCategory === 'Adult' ? '18+' : 'Un18'}</span>
                                 </span>`).join('')}
                         </div>
                     ` : ''}
                 </div>
             ` : ''}
 
-            <div class="grid grid-cols-2 gap-2 mt-2">
-                <button onclick="editMember('${m.id}')" class="py-3 bg-white text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-sm">Edit</button>
-                <button onclick="confirmDelete('${m.id}')" class="py-3 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-colors shadow-lg shadow-rose-100">Remove</button>
+            <div class="grid grid-cols-2 gap-4 pt-2">
+                <button onclick="editMember('${m.id}')" class="py-4 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">Modify Record</button>
+                <button onclick="confirmDelete('${m.id}')" class="py-4 bg-white text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100 hover:bg-rose-50 hover:border-rose-200 transition-all shadow-sm">Delete</button>
             </div>
         </div>
-    `).join('') || '<div class="text-center py-20 text-slate-400 font-bold">No records found</div>';
+    `).join('') || '<div class="text-center py-24 text-slate-300 font-bold uppercase tracking-widest">No matching records</div>';
 };
+
 
 window.togglePaid = async (id, current) => {
     try {
