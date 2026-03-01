@@ -267,21 +267,33 @@ p {
 .logo-bubble {
     background: #FFFFFF;
     border-radius: 50% !important;
-    padding: 1.5rem;
+    padding: 1rem;
+    /* Slightly reduced padding */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
-    border: 6px solid var(--gold-vibrant);
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.4);
+    border: 5px solid var(--gold-vibrant);
     position: relative;
     z-index: 10;
     overflow: hidden !important;
-    /* Critical for cutting square corners */
+    max-width: 140px;
+    /* Stronger constraint for mobile */
+    max-height: 140px;
+}
+
+@media (min-width: 768px) {
+    .logo-bubble {
+        max-width: 220px;
+        /* Refined desktop size */
+        max-height: 220px;
+    }
 }
 
 .logo-bubble img {
     border-radius: 50% !important;
-    object-fit: cover;
+    object-fit: contain;
+    /* Ensure full logo is visible inside circle */
     width: 100%;
     height: 100%;
 }
