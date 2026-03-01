@@ -263,12 +263,10 @@ p {
     transition: all 0.3s ease;
 }
 
-/* LOGO BUBBLE */
+/* LOGO BUBBLE BASE */
 .logo-bubble {
     background: #FFFFFF;
     border-radius: 50% !important;
-    padding: 1rem;
-    /* Slightly reduced padding */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -277,32 +275,48 @@ p {
     position: relative;
     z-index: 10;
     overflow: hidden !important;
-    max-width: 140px;
-    /* Stronger constraint for mobile */
-    max-height: 140px;
-}
-
-@media (min-width: 768px) {
-    .logo-bubble {
-        max-width: 220px;
-        /* Refined desktop size */
-        max-height: 220px;
-    }
+    aspect-ratio: 1/1;
 }
 
 .logo-bubble img {
     border-radius: 50% !important;
-    object-fit: contain;
-    /* Ensure full logo is visible inside circle */
-    width: 100%;
-    height: 100%;
+    object-fit: cover !important;
+    /* Force zoom to cut off white square corners */
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* LOGO VARIATIONS - EXTREME SCALING */
+.logo-miniature {
+    width: 38px !important;
+    height: 38px !important;
+    padding: 0.15rem !important;
+    border-width: 2px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.logo-hero {
+    width: 180px !important;
+    height: 180px !important;
+    padding: 1.25rem;
+    border-width: 8px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+@media (min-width: 768px) {
+    .logo-hero {
+        width: 280px !important;
+        height: 280px !important;
+        padding: 2rem;
+    }
 }
 
 /* PREMIUM SUBMIT BUTTON */
 .submit-btn {
     background: linear-gradient(135deg, var(--emerald-vibrant), var(--emerald-mid));
     border: 2px solid var(--emerald-light);
-    color: white;
+    color: white !important;
     padding: 1.25rem 3rem;
     border-radius: 100px;
     font-weight: 900;
@@ -316,6 +330,48 @@ p {
     box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
     position: relative;
     overflow: hidden;
+    text-decoration: none;
+    border: none;
+    outline: none;
+}
+
+.submit-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.6);
+}
+
+.submit-btn:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+.submit-btn i {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+.submit-bubble-wrapper {
+    position: relative;
+    padding: 5rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(16, 185, 129, 0.05);
+    border-radius: 3rem;
+    margin-top: 4rem;
+}
+
+.submit-bubble-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30rem;
+    height: 30rem;
+    background: radial-gradient(circle, var(--emerald-mid) 0%, transparent 70%);
+    opacity: 0.3;
+    z-index: -1;
+    pointer-events: none;
 }
 
 .submit-btn:hover {
