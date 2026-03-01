@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+:root {
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --primary: #2E7D32;
+    /* Leaf Green */
+    --primary-light: #4CAF50;
+    --accent: #D4AF37;
+    /* Gold */
+    --accent-light: #FFD700;
+    --slate-900: #1B2E1C;
+    /* Dark Forest Greenish-Slate */
+    --bg-main: #F4F7F2;
+    /* Soft Sage Background */
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-main);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    color: #333;
+}
+
+.glass-nav {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.view-transition {
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+input,
+textarea,
+select {
+    font-size: 16px !important;
+}
+
+.form-input {
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.form-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px -8px rgba(46, 125, 50, 0.2);
+    border-color: var(--primary);
+}
+
+.loader {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.toast-active {
+    transform: translate(-50%, -20px);
+    opacity: 1 !important;
+}
+
+.member-row {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Custom UI Overrides */
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 10px 20px -5px rgba(46, 125, 50, 0.3);
+}
+
+.btn-primary:hover {
+    background-color: #246628;
+}
+
+.accent-card {
+    background: linear-gradient(135deg, var(--primary) 0%, #1B5E20 100%);
+}
+
+.gold-text {
+    color: var(--accent);
+}
