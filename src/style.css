@@ -1,47 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary-900: #064E3B;
-    --primary-700: #047857;
-    --primary-600: #059669;
-    --primary-500: #10B981;
-    --primary-100: #D1FAE5;
-    --primary-50: #ECFDF5;
-    --gold-main: #D4AF37;
-    --gold-light: #F3E5AB;
-    --bg-page: #F0F5F2;
-    /* Soft emerald tint background */
-    --input-bg: rgba(6, 78, 59, 0.04);
-    /* Tinted input background */
-    --card-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.15);
+    --neon-emerald: #10B981;
+    --deep-emerald: #064E3B;
+    --forest-green: #022C22;
+    --neon-gold: #F59E0B;
+    --dark-gold: #B8860B;
+    --glass-tint: rgba(255, 255, 255, 0.07);
+    --input-fill: rgba(255, 255, 255, 0.05);
 }
 
 body {
     font-family: 'Outfit', sans-serif;
-    background-color: var(--bg-page);
-    background-image:
-        radial-gradient(circle at 0% 0%, var(--primary-100) 0%, transparent 40%),
-        radial-gradient(circle at 100% 100%, var(--gold-light) 0%, transparent 40%);
-    color: var(--primary-900);
+    /* Deep Saturated Mesh Gradient - NO WHITE */
+    background:
+        radial-gradient(circle at 0% 0%, #064E3B 0%, transparent 60%),
+        radial-gradient(circle at 100% 0%, #047857 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, #111827 0%, transparent 60%),
+        #022C22;
+    background-attachment: fixed;
+    color: #F0FDF4;
     min-height: 100vh;
 }
 
-/* Vibrant Navigation */
+/* ZERO-WHITE Glass Nav */
 .glass-nav {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 3px solid var(--gold-main);
-    box-shadow: 0 10px 30px -10px rgba(6, 78, 59, 0.1);
+    background: rgba(2, 44, 34, 0.9);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-bottom: 3px solid var(--neon-gold);
+    box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
-/* BOLD Vibrant Cards */
+.glass-nav span {
+    color: #FFF;
+}
+
+/* ZERO-WHITE Glass Cards */
 .premium-card {
-    background: #FFFFFF;
-    border-radius: 2.5rem;
+    background: var(--glass-tint);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 3.5rem;
     padding: 3.5rem;
-    border: 1px solid var(--primary-100);
-    border-top: 6px solid var(--gold-main);
-    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 6px solid var(--neon-gold);
+    box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.6);
     position: relative;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -61,17 +65,17 @@ body {
     box-shadow: 0 10px 30px -10px rgba(6, 78, 59, 0.4);
 }
 
-/* Custom Input Styling - NO WHITE BOXES */
+/* Saturated Forms - NO WHITE BOXES */
 .form-input {
     width: 100%;
-    padding: 1.25rem 1.75rem;
-    background: var(--input-bg);
-    border: 2px solid var(--primary-50);
-    border-radius: 1.5rem;
-    font-size: 1rem;
+    padding: 1.5rem 2rem;
+    background: var(--input-fill);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.75rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: var(--primary-900);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #FFF;
+    transition: all 0.3s ease;
 }
 
 .form-input::placeholder {
@@ -79,25 +83,25 @@ body {
 }
 
 .form-input:focus {
-    background: #FFFFFF;
-    border-color: var(--gold-main);
-    box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.1);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--neon-gold);
+    box-shadow: 0 0 50px -10px rgba(245, 158, 11, 0.3);
     outline: none;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 /* Vibrant Buttons */
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-900) 100%);
-    color: white;
-    font-weight: 800;
+    background: linear-gradient(135deg, var(--neon-emerald) 0%, var(--deep-emerald) 100%);
+    color: #FFF;
+    font-weight: 900;
     padding: 1.75rem;
-    border-radius: 1.75rem;
-    box-shadow: 0 20px 40px -10px rgba(6, 78, 59, 0.4);
+    border-radius: 2rem;
+    box-shadow: 0 25px 50px -10px rgba(16, 185, 129, 0.4);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    letter-spacing: 0.15em;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.4s ease;
 }
 
 .btn-primary:hover {
@@ -107,23 +111,50 @@ body {
     border-color: var(--gold-main);
 }
 
-/* Vibrant Bubbles */
+.btn-primary:active {
+    transform: scale(0.95);
+}
+
+/* THE BUBBLES - High Saturated Design Centerpiece */
 .icon-circle {
-    width: 4.5rem;
-    height: 4.5rem;
-    border-radius: 1.5rem;
+    width: 6rem;
+    /* Large for phone usage */
+    height: 6rem;
+    border-radius: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-    color: white;
-    font-size: 1.75rem;
-    box-shadow: 0 10px 20px -5px rgba(6, 78, 59, 0.2);
-    margin-bottom: 2rem;
+    background: linear-gradient(135deg, var(--neon-emerald) 0%, var(--deep-emerald) 100%);
+    color: #FFF;
+    font-size: 2.5rem;
+    box-shadow:
+        0 20px 40px -10px rgba(16, 185, 129, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+    margin-bottom: 2.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 10;
+}
+
+.icon-circle::after {
+    content: '';
+    position: absolute;
+    inset: -15px;
+    background: var(--neon-emerald);
+    filter: blur(30px);
+    opacity: 0.2;
+    z-index: -1;
 }
 
 .icon-circle.style-gold {
-    background: linear-gradient(135deg, var(--gold-main) 0%, #B8860B 100%);
+    background: linear-gradient(135deg, var(--neon-gold) 0%, var(--dark-gold) 100%);
+    box-shadow:
+        0 20px 40px -10px rgba(245, 158, 11, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.icon-circle.style-gold::after {
+    background: var(--neon-gold);
 }
 
 /* Decorative Background Elements */
@@ -145,28 +176,41 @@ body {
 }
 
 .label-bold {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--primary-700);
-    margin-bottom: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--gold-main);
+    /* Gold labels on dark glass */
+    margin-bottom: 1rem;
     display: block;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+h1,
+h2,
+h3,
+h4 {
+    color: #FFFFFF !important;
+}
+
+p {
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* Dynamic List Items */
 .member-badge {
-    padding: 0.75rem 1.25rem;
-    background: var(--primary-50);
-    border: 1.5px solid var(--primary-100);
-    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1.5px solid rgba(212, 175, 55, 0.3);
+    border-radius: 1.25rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     font-weight: 700;
-    font-size: 0.85rem;
-    color: var(--primary-900);
-    box-shadow: 0 4px 6px -1px rgba(6, 78, 59, 0.05);
+    font-size: 0.9rem;
+    color: var(--gold-light);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
 }
 
 .btn-gold {
@@ -178,9 +222,9 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Animations */
+/* Animations - Smoother for glass */
 .fade-in-up {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fadeInUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 @keyframes fadeInUp {
