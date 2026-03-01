@@ -281,8 +281,8 @@ window.renderAdminContent = () => {
             <div class="flex justify-between items-start">
                 <div class="flex gap-5">
                     <div>
-                        <h4 class="text-xl font-black text-slate-900 leading-tight">${m.name}</h4>
-                        <p class="text-[10px] text-emerald-600 font-extrabold uppercase tracking-[0.15em] mt-1">${m.profession || 'Association Member'}</p>
+                        <h4 class="text-xl font-black text-white leading-tight">${m.name}</h4>
+                        <p class="text-[10px] text-emerald-300 font-extrabold uppercase tracking-[0.15em] mt-1">${m.profession || 'Association Member'}</p>
                     </div>
                 </div>
                 <button onclick="togglePaid('${m.id}', ${m.isVerifiedPaid})" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${m.isVerifiedPaid ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-amber-400 text-white shadow-lg shadow-amber-500/20'}">
@@ -290,34 +290,34 @@ window.renderAdminContent = () => {
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-500 border-y border-slate-100 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-white/70 border-y border-white/10 py-6">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
-                        <i class="fa-solid fa-phone text-[10px] text-emerald-600"></i>
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        <i class="fa-solid fa-phone text-[10px] text-emerald-300"></i>
                     </div>
-                    <span class="text-slate-700 font-bold">${m.mobile}</span>
+                    <span class="text-white font-bold">${m.mobile}</span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
-                        <i class="fa-solid fa-envelope text-[10px] text-emerald-600"></i>
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        <i class="fa-solid fa-envelope text-[10px] text-emerald-300"></i>
                     </div>
-                    <span class="text-slate-700 font-bold truncate">${m.email}</span>
+                    <span class="text-white font-bold truncate">${m.email}</span>
                 </div>
                 <div class="flex items-start gap-3 col-span-1 md:col-span-2">
-                    <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-map-marker-alt text-[10px] text-emerald-600"></i>
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-map-marker-alt text-[10px] text-emerald-300"></i>
                     </div>
-                    <span class="text-slate-600 leading-relaxed pt-1">${m.address || 'No Address Provided'}</span>
+                    <span class="text-white/80 leading-relaxed pt-1">${m.address || 'No Address Provided'}</span>
                 </div>
             </div>
 
             ${m.spouse || (m.householdMembers && m.householdMembers.length > 0) ? `
-                <div class="space-y-4 bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
+                <div class="space-y-4 bg-white/5 p-5 rounded-2xl border border-white/10">
                     ${m.spouse ? `
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-heart text-rose-400 text-xs"></i>
-                            <span class="text-xs font-bold text-slate-700">${m.spouse}</span>
-                            ${m.spouseProfession ? `<span class="text-[10px] text-slate-400 font-medium italic">(${m.spouseProfession})</span>` : ''}
+                            <span class="text-xs font-bold text-white">${m.spouse}</span>
+                            ${m.spouseProfession ? `<span class="text-[10px] text-white/50 font-medium italic">(${m.spouseProfession})</span>` : ''}
                         </div>
                     ` : ''}
                     
@@ -325,11 +325,11 @@ window.renderAdminContent = () => {
                         <div class="flex flex-wrap gap-2">
                             <i class="fa-solid fa-people-roof text-emerald-400 text-xs mt-1 mr-1"></i>
                             ${m.householdMembers.map(c => `
-                                <span class="px-3 py-1 bg-white text-slate-700 rounded-lg text-[10px] font-extrabold border border-slate-100 flex items-center gap-2 shadow-sm">
-                                    <span class="opacity-40 uppercase text-[8px] font-black">${c.type}</span> 
+                                <span class="px-3 py-1 bg-white/10 text-white rounded-lg text-[10px] font-extrabold border border-white/10 flex items-center gap-2 shadow-sm">
+                                    <span class="opacity-50 uppercase text-[8px] font-black">${c.type}</span> 
                                     ${c.name}
-                                    <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                    <span class="text-emerald-600">${c.ageCategory === 'Adult' ? '18+' : 'Un18'}</span>
+                                    <span class="w-1 h-1 bg-white/30 rounded-full"></span>
+                                    <span class="text-emerald-300">${c.ageCategory === 'Adult' ? '18+' : 'Un18'}</span>
                                 </span>`).join('')}
                         </div>
                     ` : ''}
@@ -337,11 +337,11 @@ window.renderAdminContent = () => {
             ` : ''}
 
             <div class="grid grid-cols-2 gap-4 pt-2">
-                <button onclick="editMember('${m.id}')" class="py-4 bg-white text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 hover:bg-emerald-50 transition-all shadow-sm">Edit Profile</button>
-                <button onclick="confirmDelete('${m.id}')" class="py-4 bg-white text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100 hover:bg-rose-50 transition-all shadow-sm">Remove</button>
+                <button onclick="editMember('${m.id}')" class="py-4 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg">Edit Profile</button>
+                <button onclick="confirmDelete('${m.id}')" class="py-4 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-all shadow-lg">Remove</button>
             </div>
         </div>
-    `).join('') || '<div class="text-center py-24 text-slate-300 font-bold uppercase tracking-widest">No matching records</div>';
+    `).join('') || '<div class="text-center py-24 text-white/40 font-bold uppercase tracking-widest">No matching records</div>';
 };
 
 
