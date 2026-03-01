@@ -162,93 +162,152 @@ body {
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.15em;
-        color: var(--gold-main);
-        /* Gold labels on dark glass */
+        color: var(--gold-vibrant);
         margin-bottom: 1rem;
         display: block;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+}
 
-    h1,
-    h2,
-    h3,
-    h4 {
-        color: #FFFFFF !important;
+/* Closing bracket for previous section if missing */
+
+/* LOGO BUBBLE */
+.logo-bubble {
+    background: #FFFFFF;
+    border-radius: 50%;
+    padding: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    border: 6px solid var(--gold-vibrant);
+    position: relative;
+    z-index: 10;
+}
+
+.logo-bubble::after {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: var(--gold-vibrant);
+    filter: blur(40px);
+    opacity: 0.2;
+    z-index: -1;
+}
+
+/* SUBMIT BUTTON BUBBLE */
+.submit-bubble-wrapper {
+    position: relative;
+    padding: 3rem 0;
+}
+
+.submit-bubble-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 18rem;
+    height: 18rem;
+    background: radial-gradient(circle, var(--emerald-mid) 0%, transparent 70%);
+    opacity: 0.15;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* FIX VISIBILITY FOR LOGIN/ADMIN */
+#view-login .form-input,
+#view-admin .form-input,
+#view-login input,
+#view-admin input {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #FFFFFF !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+#view-login input::placeholder {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+h2,
+h3,
+h4 {
+    color: #FFFFFF !important;
+}
+
+p {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Dynamic List Items */
+.member-badge {
+    padding: 1rem 1.5rem;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1.5px solid rgba(212, 175, 55, 0.3);
+    border-radius: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--gold-light);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+
+.btn-gold {
+    background: var(--gold-main);
+    color: white;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+}
+
+/* Animations - Smoother for glass */
+.fade-in-up {
+    animation: fadeInUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
     }
 
-    p {
-        color: rgba(255, 255, 255, 0.7);
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.toast-active {
+    transform: translate(-50%, -20px);
+    opacity: 1 !important;
+}
+
+@media (max-width: 640px) {
+    .premium-card {
+        padding: 2.5rem 1.75rem;
+        border-radius: 2rem;
     }
 
-    /* Dynamic List Items */
-    .member-badge {
-        padding: 1rem 1.5rem;
-        background: rgba(212, 175, 55, 0.1);
-        border: 1.5px solid rgba(212, 175, 55, 0.3);
-        border-radius: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-weight: 700;
-        font-size: 0.9rem;
-        color: var(--gold-light);
-        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+    .btn-primary {
+        padding: 1.5rem;
+        font-size: 1rem;
     }
+}
 
-    .btn-gold {
-        background: var(--gold-main);
-        color: white;
-        font-weight: 700;
-        padding: 0.75rem 1.5rem;
-        border-radius: 1rem;
-        transition: all 0.3s ease;
-    }
-
-    /* Animations - Smoother for glass */
-    .fade-in-up {
-        animation: fadeInUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(40px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes spin {
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    .toast-active {
-        transform: translate(-50%, -20px);
-        opacity: 1 !important;
-    }
-
-    @media (max-width: 640px) {
-        .premium-card {
-            padding: 2.5rem 1.75rem;
-            border-radius: 2rem;
-        }
-
-        .btn-primary {
-            padding: 1.5rem;
-            font-size: 1rem;
-        }
-    }
-
-    .loader {
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        border-top: 3px solid #FFF;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        animation: spin 1s linear infinite;
-    }
+.loader {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #FFF;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}

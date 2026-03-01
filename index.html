@@ -17,9 +17,11 @@
     <nav class="fixed top-0 left-0 right-0 z-40 glass-nav border-b border-slate-200/50">
         <div class="max-w-7xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
             <div class="flex items-center gap-4 cursor-pointer" onclick="showView('form')">
-                <img src="public/logo.png" alt="SHEMA"
-                    onerror="this.src='https://ui-avatars.com/api/?name=SHEMA&background=2E7D32&color=fff'"
-                    class="h-14 md:h-20 w-auto object-contain">
+                <div class="logo-bubble !p-2">
+                    <img src="public/logo.png" alt="SHEMA"
+                        onerror="this.src='https://ui-avatars.com/api/?name=SHEMA&background=2E7D32&color=fff'"
+                        class="h-10 md:h-12 w-auto object-contain">
+                </div>
                 <div class="leading-none border-l-2 border-slate-100 pl-4 py-1">
                     <span class="block font-bold text-sm md:text-xl text-slate-800 tracking-tight">Shepparton Malayalee
                         Association</span>
@@ -40,11 +42,10 @@
 
         <section id="view-form" class="space-y-12">
             <header class="text-center fade-in-up">
-                <div class="inline-block relative mb-10">
-                    <div class="absolute inset-0 bg-emerald-200 blur-3xl opacity-20 rounded-full scale-150"></div>
-                    <img src="public/logo.png"
-                        class="h-44 md:h-64 w-auto relative z-10 drop-shadow-[0_20px_20px_rgba(6,78,59,0.2)]"
-                        alt="SHEMA Logo">
+                <div class="inline-block relative mb-12">
+                    <div class="logo-bubble">
+                        <img src="public/logo.png" class="h-32 md:h-48 w-auto relative z-10" alt="SHEMA Logo">
+                    </div>
                 </div>
                 <h1 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-4">Member Enrolment</h1>
                 <p class="text-slate-500 font-semibold text-lg max-w-lg mx-auto leading-relaxed">Join our vibrant
@@ -198,12 +199,14 @@
                     </div>
                 </div>
 
-                <div class="space-y-6 pt-6">
-                    <button type="submit" id="submit-btn"
-                        class="btn-primary w-full shadow-emerald-600/20 active:scale-[0.99] flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-paper-plane text-sm"></i>
-                        Submit Registration
-                    </button>
+                <div class="space-y-6 pt-12">
+                    <div class="submit-bubble-wrapper">
+                        <button type="submit" id="submit-btn"
+                            class="btn-primary w-full shadow-emerald-600/20 active:scale-[0.99] flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-paper-plane text-sm"></i>
+                            Submit Registration
+                        </button>
+                    </div>
                     <div class="text-center space-y-3">
                         <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest opacity-60">
                             Membership Registry 2026/27</p>
@@ -309,7 +312,7 @@
 
             <form onsubmit="handleLogin(event)" class="space-y-5">
                 <input type="password" id="admin-pw" placeholder="••••••••"
-                    class="w-full py-5 px-8 bg-white border-2 border-slate-100 rounded-2xl text-center font-black text-2xl outline-none focus:border-emerald-200 transition-all placeholder:text-slate-200">
+                    class="form-input text-center text-4xl py-8 mb-4 border-2 border-white/20">
                 <button type="submit" class="btn-primary w-full shadow-2xl">
                     Sign In
                 </button>
