@@ -55,18 +55,15 @@
                 <input type="hidden" id="form-member-id">
 
                 <!-- Personal Data Card -->
-                <div class="premium-card relative overflow-hidden group">
-                    <div
-                        class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-all group-hover:bg-emerald-100">
-                    </div>
+                <div class="premium-card relative group">
+                    <div class="card-blob"></div>
 
                     <div class="flex items-center gap-5 mb-12 relative z-10">
-                        <div
-                            class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-emerald-200">
+                        <div class="icon-circle">
                             <i class="fa-solid fa-id-card"></i>
                         </div>
                         <div>
-                            <h2 class="text-2xl font-extrabold text-slate-900">Personal Details</h2>
+                            <h2 class="text-3xl font-black text-slate-900">Personal Details</h2>
                             <p class="text-emerald-600 font-bold text-xs uppercase tracking-widest">Primary Member
                                 Identity</p>
                         </div>
@@ -74,24 +71,24 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                         <div class="form-group">
-                            <label>Full Name *</label>
+                            <label class="label-bold">Full Name *</label>
                             <input type="text" name="name" required class="form-input" placeholder="e.g. John Doe">
                         </div>
                         <div class="form-group">
-                            <label>Mobile Number *</label>
+                            <label class="label-bold">Mobile Number *</label>
                             <input type="tel" name="mobile" required class="form-input" placeholder="04XX XXX XXX">
                         </div>
                         <div class="form-group">
-                            <label>Email Address *</label>
+                            <label class="label-bold">Email Address *</label>
                             <input type="email" name="email" required class="form-input" placeholder="john@example.com">
                         </div>
                         <div class="form-group">
-                            <label>Profession</label>
+                            <label class="label-bold">Profession</label>
                             <input type="text" name="profession" class="form-input"
                                 placeholder="e.g. Software Engineer">
                         </div>
                         <div class="form-group md:col-span-2">
-                            <label>Residential Address</label>
+                            <label class="label-bold">Residential Address</label>
                             <textarea name="address" rows="2" class="form-input resize-none"
                                 placeholder="Street Address, Suburb, VIC Postcode"></textarea>
                         </div>
@@ -99,34 +96,27 @@
                 </div>
 
                 <!-- Household Members Card -->
-                <div class="premium-card relative overflow-hidden group">
-                    <div
-                        class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-all group-hover:bg-amber-100">
-                    </div>
+                <div class="premium-card relative group">
+                    <div class="card-blob card-blob-gold"></div>
 
-                    <div class="flex items-center gap-4 mb-10 relative z-10">
-                        <div class="icon-circle style-amber">
-                            <style>
-                                .style-amber {
-                                    color: #B8860B;
-                                    background: #FFF9E6;
-                                }
-                            </style>
+                    <div class="flex items-center gap-5 mb-12 relative z-10">
+                        <div class="icon-circle style-gold">
                             <i class="fa-solid fa-house-user"></i>
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-slate-900">Family Members</h2>
-                            <p class="text-sm text-slate-400 font-medium">Household details & spouse</p>
+                            <h2 class="text-3xl font-black text-slate-900">Family Members</h2>
+                            <p class="text-emerald-600 font-bold text-xs uppercase tracking-widest">Household & Spouse
+                                Details</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 relative z-10">
                         <div class="form-group">
-                            <label>Spouse Name</label>
+                            <label class="label-bold">Spouse Name</label>
                             <input type="text" name="spouse" class="form-input" placeholder="Partner's full name">
                         </div>
                         <div class="form-group">
-                            <label>Spouse Profession</label>
+                            <label class="label-bold">Spouse Profession</label>
                             <input type="text" name="spouseProfession" class="form-input"
                                 placeholder="Partner's occupation">
                         </div>

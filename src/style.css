@@ -1,46 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary-deep: #064E3B;
-    /* Emerald 900 */
-    --primary-main: #059669;
-    /* Emerald 600 */
-    --primary-light: #10B981;
-    /* Emerald 500 */
-    --accent-gold: #D4AF37;
-    /* Metallic Gold */
-    --accent-gold-light: #F3E5AB;
-    /* Cream Gold */
-    --bg-warm: #F8FAF8;
-    /* Very soft emerald tint */
-    --card-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.12);
+    --primary-900: #064E3B;
+    --primary-700: #047857;
+    --primary-600: #059669;
+    --primary-500: #10B981;
+    --primary-100: #D1FAE5;
+    --primary-50: #ECFDF5;
+    --gold-main: #D4AF37;
+    --gold-light: #F3E5AB;
+    --bg-page: #F0F5F2;
+    /* Soft emerald tint background */
+    --input-bg: rgba(6, 78, 59, 0.04);
+    /* Tinted input background */
+    --card-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.15);
 }
 
 body {
     font-family: 'Outfit', sans-serif;
-    background-color: var(--bg-warm);
+    background-color: var(--bg-page);
     background-image:
-        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(212, 175, 55, 0.05) 0px, transparent 50%);
-    color: #1F2937;
+        radial-gradient(circle at 0% 0%, var(--primary-100) 0%, transparent 40%),
+        radial-gradient(circle at 100% 100%, var(--gold-light) 0%, transparent 40%);
+    color: var(--primary-900);
     min-height: 100vh;
 }
 
 /* Vibrant Navigation */
 .glass-nav {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    border-bottom: 2px solid var(--accent-gold);
+    border-bottom: 3px solid var(--gold-main);
+    box-shadow: 0 10px 30px -10px rgba(6, 78, 59, 0.1);
 }
 
-/* Premium Vibrant Cards */
+/* BOLD Vibrant Cards */
 .premium-card {
     background: #FFFFFF;
     border-radius: 2.5rem;
-    padding: 3rem;
-    border: 1px solid rgba(6, 78, 59, 0.05);
-    border-top: 4px solid var(--accent-gold);
+    padding: 3.5rem;
+    border: 1px solid var(--primary-100);
+    border-top: 6px solid var(--gold-main);
     box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -58,46 +61,116 @@ body {
     box-shadow: 0 10px 30px -10px rgba(6, 78, 59, 0.4);
 }
 
-/* Form Styling */
+/* Custom Input Styling - NO WHITE BOXES */
 .form-input {
     width: 100%;
-    padding: 1.25rem 1.5rem;
-    background: #F9FAFB;
-    border: 2px solid #E5E7EB;
-    border-radius: 1.25rem;
+    padding: 1.25rem 1.75rem;
+    background: var(--input-bg);
+    border: 2px solid var(--primary-50);
+    border-radius: 1.5rem;
     font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    font-weight: 600;
+    color: var(--primary-900);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-input::placeholder {
+    color: rgba(6, 78, 59, 0.4);
 }
 
 .form-input:focus {
-    border-color: var(--primary-main);
-    background: #FFF;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    background: #FFFFFF;
+    border-color: var(--gold-main);
+    box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.1);
     outline: none;
+    transform: translateY(-2px);
 }
 
 /* Vibrant Buttons */
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-main) 0%, var(--primary-deep) 100%);
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-900) 100%);
     color: white;
     font-weight: 800;
-    padding: 1.5rem;
-    border-radius: 1.5rem;
-    box-shadow: 0 15px 30px -10px rgba(6, 78, 59, 0.4);
+    padding: 1.75rem;
+    border-radius: 1.75rem;
+    box-shadow: 0 20px 40px -10px rgba(6, 78, 59, 0.4);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: all 0.3s ease;
+    letter-spacing: 0.1em;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 20px 40px -10px rgba(6, 78, 59, 0.5);
+    transform: translateY(-3px) scale(1.02);
+    filter: brightness(1.2);
+    box-shadow: 0 25px 50px -10px rgba(6, 78, 59, 0.5);
+    border-color: var(--gold-main);
+}
+
+/* Vibrant Bubbles */
+.icon-circle {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+    color: white;
+    font-size: 1.75rem;
+    box-shadow: 0 10px 20px -5px rgba(6, 78, 59, 0.2);
+    margin-bottom: 2rem;
+}
+
+.icon-circle.style-gold {
+    background: linear-gradient(135deg, var(--gold-main) 0%, #B8860B 100%);
+}
+
+/* Decorative Background Elements */
+.card-blob {
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, var(--primary-50) 0%, transparent 70%);
+    top: -125px;
+    right: -125px;
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.card-blob-gold {
+    background: radial-gradient(circle, var(--gold-light) 0%, transparent 70%);
+    opacity: 0.4;
+}
+
+.label-bold {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary-700);
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+/* Dynamic List Items */
+.member-badge {
+    padding: 0.75rem 1.25rem;
+    background: var(--primary-50);
+    border: 1.5px solid var(--primary-100);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--primary-900);
+    box-shadow: 0 4px 6px -1px rgba(6, 78, 59, 0.05);
 }
 
 .btn-gold {
-    background: var(--accent-gold);
+    background: var(--gold-main);
     color: white;
     font-weight: 700;
     padding: 0.75rem 1.5rem;
@@ -107,13 +180,13 @@ body {
 
 /* Animations */
 .fade-in-up {
-    animation: fadeInUp 0.6s ease-out forwards;
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(40px);
     }
 
     to {
@@ -122,10 +195,26 @@ body {
     }
 }
 
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.toast-active {
+    transform: translate(-50%, -20px);
+    opacity: 1 !important;
+}
+
 @media (max-width: 640px) {
     .premium-card {
-        padding: 2rem 1.5rem;
+        padding: 2.5rem 1.75rem;
         border-radius: 2rem;
+    }
+
+    .btn-primary {
+        padding: 1.5rem;
+        font-size: 1rem;
     }
 }
 
@@ -136,10 +225,4 @@ body {
     width: 24px;
     height: 24px;
     animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    100% {
-        transform: rotate(360deg);
-    }
 }
