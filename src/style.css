@@ -115,7 +115,7 @@ body {
     height: 3.5rem;
     border-radius: 1.25rem;
     display: flex;
-    items-center: center;
+    align-items: center;
     justify-content: center;
     background: var(--bg-app);
     color: var(--primary-light);
@@ -137,6 +137,43 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+    .premium-card {
+        padding: 1.5rem;
+        border-radius: 1.5rem;
+    }
+
+    .btn-submit {
+        padding: 1.25rem;
+        font-size: 1rem;
+        border-radius: 1.25rem;
+    }
+
+    h1 {
+        font-size: 1.875rem !important;
+    }
+
+    h2 {
+        font-size: 1.5rem !important;
+    }
+
+    .icon-circle {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.25rem;
+    }
+
+    .form-group label {
+        font-size: 0.7rem;
+    }
+
+    .form-input {
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
     }
 }
 
