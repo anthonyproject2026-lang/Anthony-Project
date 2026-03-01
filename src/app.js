@@ -255,7 +255,7 @@ window.updateAdminPassword = async () => {
     try {
         const configRef = doc(db, 'artifacts', appId, 'public', 'config', 'admin');
         await setDoc(configRef, { password: newPw });
-        showToast("Admin password updated!");
+        showToast("Admin access granted!");
         document.getElementById('new-password').value = '';
     } catch (err) {
         showToast("Update failed", false);
@@ -280,12 +280,9 @@ window.renderAdminContent = () => {
         <div class="premium-card !p-8 flex flex-col gap-6">
             <div class="flex justify-between items-start">
                 <div class="flex gap-5">
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shadow-sm">
-                        <i class="fa-solid fa-user-circle text-2xl"></i>
-                    </div>
                     <div>
                         <h4 class="text-xl font-black text-slate-900 leading-tight">${m.name}</h4>
-                        <p class="text-[10px] text-emerald-700 font-black uppercase tracking-[0.15em] mt-1">${m.profession || 'Community Member'}</p>
+                        <p class="text-[10px] text-emerald-600 font-extrabold uppercase tracking-[0.15em] mt-1">${m.profession || 'Association Member'}</p>
                     </div>
                 </div>
                 <button onclick="togglePaid('${m.id}', ${m.isVerifiedPaid})" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${m.isVerifiedPaid ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-amber-400 text-white shadow-lg shadow-amber-500/20'}">
@@ -340,8 +337,8 @@ window.renderAdminContent = () => {
             ` : ''}
 
             <div class="grid grid-cols-2 gap-4 pt-2">
-                <button onclick="editMember('${m.id}')" class="py-4 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">Modify Record</button>
-                <button onclick="confirmDelete('${m.id}')" class="py-4 bg-white text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100 hover:bg-rose-50 hover:border-rose-200 transition-all shadow-sm">Delete</button>
+                <button onclick="editMember('${m.id}')" class="py-4 bg-white text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 hover:bg-emerald-50 transition-all shadow-sm">Edit Profile</button>
+                <button onclick="confirmDelete('${m.id}')" class="py-4 bg-white text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100 hover:bg-rose-50 transition-all shadow-sm">Remove</button>
             </div>
         </div>
     `).join('') || '<div class="text-center py-24 text-slate-300 font-bold uppercase tracking-widest">No matching records</div>';

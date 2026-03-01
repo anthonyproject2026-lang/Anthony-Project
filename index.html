@@ -29,8 +29,9 @@
                 </div>
             </div>
             <button onclick="showView('login')"
-                class="group p-2 md:px-5 md:py-2.5 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-emerald-700 hover:border-emerald-100 hover:shadow-xl hover:shadow-emerald-500/10 transition-all">
-                <i class="fa-solid fa-user-shield text-sm"></i>
+                class="group flex items-center gap-3 px-6 py-3 bg-emerald-50 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-600 hover:text-white transition-all">
+                <i class="fa-solid fa-lock-open text-sm"></i>
+                <span class="hidden md:inline">Admin Login</span>
             </button>
         </div>
     </nav>
@@ -38,15 +39,16 @@
     <main class="max-w-3xl mx-auto px-6 pt-32 pb-24">
 
         <section id="view-form" class="space-y-12">
-            <header class="text-center">
-                <div class="inline-block relative mb-8">
-                    <div class="absolute inset-0 bg-emerald-100 blur-3xl opacity-30 rounded-full scale-150"></div>
-                    <img src="public/logo.png" class="h-40 md:h-56 w-auto relative z-10 drop-shadow-2xl"
+            <header class="text-center fade-in-up">
+                <div class="inline-block relative mb-10">
+                    <div class="absolute inset-0 bg-emerald-200 blur-3xl opacity-20 rounded-full scale-150"></div>
+                    <img src="public/logo.png"
+                        class="h-44 md:h-64 w-auto relative z-10 drop-shadow-[0_20px_20px_rgba(6,78,59,0.2)]"
                         alt="SHEMA Logo">
                 </div>
-                <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-3">Member Enrolment</h1>
-                <p class="text-slate-500 font-medium text-sm md:text-lg">Connecting the Shepparton Malayalee Community
-                </p>
+                <h1 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-4">Member Enrolment</h1>
+                <p class="text-slate-500 font-semibold text-lg max-w-lg mx-auto leading-relaxed">Join our vibrant
+                    community and stay connected with the Shepparton Malayalee Association.</p>
             </header>
 
             <form id="registry-form" class="space-y-8">
@@ -58,13 +60,15 @@
                         class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-all group-hover:bg-emerald-100">
                     </div>
 
-                    <div class="flex items-center gap-4 mb-10 relative z-10">
-                        <div class="icon-circle">
-                            <i class="fa-solid fa-user"></i>
+                    <div class="flex items-center gap-5 mb-12 relative z-10">
+                        <div
+                            class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-emerald-200">
+                            <i class="fa-solid fa-id-card"></i>
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-slate-900">Personal Details</h2>
-                            <p class="text-sm text-slate-400 font-medium">Primary member information</p>
+                            <h2 class="text-2xl font-extrabold text-slate-900">Personal Details</h2>
+                            <p class="text-emerald-600 font-bold text-xs uppercase tracking-widest">Primary Member
+                                Identity</p>
                         </div>
                     </div>
 
@@ -220,8 +224,9 @@
 
                 <div class="space-y-6 pt-6">
                     <button type="submit" id="submit-btn"
-                        class="btn-submit w-full shadow-emerald-600/20 active:scale-[0.99]">
-                        Complete Registration
+                        class="btn-primary w-full shadow-emerald-600/20 active:scale-[0.99] flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                        Submit Registration
                     </button>
                     <div class="text-center space-y-3">
                         <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest opacity-60">
@@ -257,14 +262,15 @@
 
         <!-- Admin View -->
         <section id="view-admin" class="hidden space-y-12">
-            <header class="flex items-center justify-between pb-6 border-b border-slate-200">
+            <header class="flex items-center justify-between pb-8 mb-10 border-b border-slate-200">
                 <div>
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Admin Terminal</h2>
-                    <p class="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Registry Management</p>
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tight">Admin Dashboard</h2>
+                    <p class="text-emerald-600 font-bold uppercase tracking-widest text-xs mt-2">Managing Our Community
+                        Registry</p>
                 </div>
-                <button onclick="exportData()"
-                    class="w-14 h-14 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-emerald-700 hover:bg-emerald-50 hover:border-emerald-200 hover:shadow-xl transition-all shadow-sm group">
-                    <i class="fa-solid fa-file-export group-hover:scale-110 transition-transform"></i>
+                <button onclick="exportData()" class="btn-gold flex items-center gap-3 hover:scale-105 transition-all">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Export CSV</span>
                 </button>
             </header>
 
@@ -319,18 +325,18 @@
         <!-- Login View -->
         <section id="view-login" class="hidden max-w-sm mx-auto py-24 text-center">
             <div
-                class="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-3xl mx-auto flex items-center justify-center mb-8 shadow-xl">
-                <i class="fa-solid fa-vault text-3xl"></i>
+                class="w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-[2rem] mx-auto flex items-center justify-center mb-8 shadow-2xl shadow-emerald-200">
+                <i class="fa-solid fa-shield-halved text-4xl"></i>
             </div>
-            <h3 class="text-2xl font-black text-slate-900 mb-2 tracking-tight">Admin Vault</h3>
-            <p class="text-slate-400 text-sm font-semibold mb-10 uppercase tracking-widest">Digital Archive Access</p>
+            <h3 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">Administrator Access</h3>
+            <p class="text-emerald-600 text-xs font-black mb-12 uppercase tracking-[0.2em]">Secure Staff Entrance</p>
 
             <form onsubmit="handleLogin(event)" class="space-y-5">
                 <input type="password" id="admin-pw" placeholder="••••••••"
                     class="w-full py-5 px-8 bg-white border-2 border-slate-100 rounded-2xl text-center font-black text-2xl outline-none focus:border-emerald-200 transition-all placeholder:text-slate-200">
-                <button type="submit"
-                    class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest shadow-2xl hover:bg-emerald-700 transition-all">Unlock
-                    Terminal</button>
+                <button type="submit" class="btn-primary w-full shadow-2xl">
+                    Sign In
+                </button>
                 <div class="pt-6">
                     <button type="button" onclick="showView('form')"
                         class="text-[10px] font-black text-slate-300 hover:text-emerald-600 uppercase tracking-[0.2em] transition-colors">Abort
