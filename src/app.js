@@ -43,8 +43,10 @@ const initAuth = async () => {
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user) {
-        setupRealtimeListener();
         checkAdminStatus();
+        if (isAdmin) {
+            setupRealtimeListener();
+        }
     }
 });
 
@@ -56,7 +58,7 @@ const checkAdminStatus = () => {
 };
 
 const setupRealtimeListener = () => {
-    if (!currentUser) return;
+    if (!isAdmin || !currentUser) return;
     const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'members');
     onSnapshot(colRef, (snapshot) => {
         members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
