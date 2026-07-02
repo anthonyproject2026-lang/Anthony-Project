@@ -9,6 +9,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="src/style.css">
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.3/purify.min.js"></script>
+
+    <script type="module">
+        window.__app_id = 'sma-registry-2026';
+    </script>
     <script type="module" src="src/app.js"></script>
 </head>
 
@@ -138,39 +144,12 @@
 
                     <!-- Payment Details -->
                     <div class="space-y-6">
-                        <!-- Account Name -->
-                        <div class="bank-card p-8 rounded-3xl relative">
-                            <p class="text-xs font-black uppercase tracking-widest mb-3 opacity-70">Account Name</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-2xl font-black">Shepparton Malayalee Association</span>
-                                <button onclick="copyToClipboard('Shepparton Malayalee Association')"
-                                    class="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                                    <i class="far fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- BSB -->
                             <div class="bank-card p-8 rounded-3xl relative">
-                                <p class="text-xs font-black uppercase tracking-widest mb-3 opacity-70">BSB Code</p>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-3xl font-black tracking-widest">803-078</span>
-                                    <button onclick="copyToClipboard('803-078')"
-                                        class="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                                        <i class="far fa-copy text-sm opacity-50"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <!-- Account Number -->
-                            <div class="bank-card p-8 rounded-3xl relative">
-                                <p class="text-xs font-black uppercase tracking-widest mb-3 opacity-70">Account No</p>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-3xl font-black tracking-widest font-mono">100105317</span>
-                                    <button onclick="copyToClipboard('100105317')"
-                                        class="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
-                                        <i class="far fa-copy text-sm opacity-50"></i>
-                                    </button>
+                                <p class="text-xs font-black uppercase tracking-widest mb-3 opacity-70">Bank Details</p>
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                    <span class="text-xs font-black text-white/50 uppercase tracking-widest">Details</span>
+                                    <span class="text-sm font-bold tracking-widest text-emerald-300 text-right">Provided via email<br>upon registration</span>
                                 </div>
                             </div>
                         </div>
@@ -278,23 +257,6 @@
 
             <div id="admin-member-list" class="grid grid-cols-1 gap-6"></div>
 
-            <div class="pt-16 border-t border-slate-200">
-                <div class="premium-card !bg-indigo-50/50 !border-indigo-100 shadow-xl shadow-indigo-500/5">
-                    <h3 class="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                            <i class="fa-solid fa-fingerprint"></i>
-                        </div>
-                        Security Configuration
-                    </h3>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input type="password" id="new-password" placeholder="New Terminal Access Code"
-                            class="flex-1 px-6 py-4 bg-white border border-indigo-100 rounded-xl outline-none focus:ring-4 focus:ring-indigo-100 font-bold text-slate-700 transition-all">
-                        <button onclick="updateAdminPassword()"
-                            class="px-10 py-4 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">Apply
-                            Change</button>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -305,13 +267,15 @@
                 <i class="fa-solid fa-lock text-4xl"></i>
             </div>
             <h3 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">Administrator Access</h3>
-            <p class="text-emerald-600 text-xs font-black mb-12 uppercase tracking-[0.2em]">Secure Staff Entrance</p>
-
-            <form onsubmit="handleLogin(event)" class="space-y-5">
-                <input type="password" id="admin-pw" placeholder="••••••••"
-                    class="form-input text-center text-4xl py-8 mb-4 border-2 border-white/20">
-                <button type="submit" class="btn-primary w-full shadow-2xl">
-                    Sign In
+            <p class="text-white/60 text-xs text-center mb-8 font-semibold uppercase tracking-widest">Secure Access</p>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <input type="email" id="admin-email" placeholder="Admin Email" required
+                    class="w-full px-5 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/30 text-sm font-bold focus:outline-none focus:border-emerald-500 focus:bg-white/20 transition-all">
+                <input type="password" id="admin-pw" placeholder="Admin Password" required
+                    class="w-full px-5 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/30 text-sm font-bold focus:outline-none focus:border-emerald-500 focus:bg-white/20 transition-all tracking-widest">
+                <button type="submit"
+                    class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-emerald-900/50 hover:-translate-y-1 transition-all">
+                    Login
                 </button>
                 <div class="pt-6">
                     <button type="button" onclick="showView('form')"

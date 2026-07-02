@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBK0XSL0_TZJjepQv87os2ikJ7Nx_smX3c",
@@ -49,7 +49,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 const checkAdminStatus = () => {
-    if (sessionStorage.getItem('sma_admin_session') === 'active') {
+    if (currentUser && currentUser.email) {
         isAdmin = true;
         document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
     }
@@ -208,59 +208,18 @@ window.handleFinalSubmit = async () => {
 
 window.handleLogin = async (e) => {
     e.preventDefault();
+    const inputEmail = document.getElementById('admin-email').value;
     const inputPw = document.getElementById('admin-pw').value;
 
-    // Fetch current password from Firestore
     try {
-        const configRef = doc(db, 'artifacts', appId, 'public', 'config');
-        const snap = await getDoc(configRef);
-        let validPassword = 'admin123'; // Default fallback
-
-        if (snap.exists()) {
-            validPassword = snap.data().password || 'admin123';
-        } else {
-            // Initialize if first time
-            await setDoc(configRef, { password: 'admin123' }, { merge: true });
-        }
-
-        if (inputPw === validPassword) {
-            isAdmin = true;
-            sessionStorage.setItem('sma_admin_session', 'active');
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-            showView('admin');
-            renderAdminContent();
-        } else {
-            showToast("Incorrect Password", false);
-        }
+        await signInWithEmailAndPassword(auth, inputEmail, inputPw);
+        isAdmin = true;
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+        showView('admin');
+        renderAdminContent();
+        showToast("Logged in successfully");
     } catch (err) {
-        // Fallback for offline/no-config
-        if (inputPw === 'admin123') {
-            isAdmin = true;
-            sessionStorage.setItem('sma_admin_session', 'active');
-            showView('admin');
-            renderAdminContent();
-        } else {
-            showToast("Access Error", false);
-        }
-    }
-};
-
-window.updateAdminPassword = async () => {
-    const newPw = document.getElementById('new-password').value;
-    if (!newPw || newPw.length < 4) {
-        showToast("Minimum 4 characters", false);
-        return;
-    }
-
-    try {
-        if (!currentUser) await initAuth();
-        const configRef = doc(db, 'artifacts', appId, 'public', 'config');
-        await setDoc(configRef, { password: newPw }, { merge: true });
-        showToast("Access code updated successfully!");
-        document.getElementById('new-password').value = '';
-    } catch (err) {
-        console.error("Password update error:", err);
-        showToast("Update failed: " + (err.code || err.message), false);
+        showToast("Incorrect Email or Password", false);
     }
 };
 
@@ -278,13 +237,38 @@ window.renderAdminContent = () => {
     document.getElementById('stat-revenue').innerText = `$${paidCount * MEMBERSHIP_FEE}`;
 
     const list = document.getElementById('admin-member-list');
-    list.innerHTML = filtered.map(m => `
+    list.innerHTML = filtered.map(m => {
+        const safeName = DOMPurify.sanitize(m.name || '');
+        const safeProfession = DOMPurify.sanitize(m.profession || 'Association Member');
+        const safeMobile = DOMPurify.sanitize(m.mobile || '');
+        const safeEmail = DOMPurify.sanitize(m.email || '');
+        const safeAddress = DOMPurify.sanitize(m.address || 'No Address Provided');
+        const safeSpouse = DOMPurify.sanitize(m.spouse || '');
+        const safeSpouseProfession = DOMPurify.sanitize(m.spouseProfession || '');
+        
+        let safeHousehold = '';
+        if (m.householdMembers && m.householdMembers.length > 0) {
+            safeHousehold = `
+                <div class="flex flex-wrap gap-2">
+                    <i class="fa-solid fa-people-roof text-emerald-400 text-xs mt-1 mr-1"></i>
+                    ${m.householdMembers.map(c => `
+                        <span class="px-3 py-1 bg-white/10 text-white rounded-lg text-[10px] font-extrabold border border-white/10 flex items-center gap-2 shadow-sm">
+                            <span class="opacity-50 uppercase text-[8px] font-black">${DOMPurify.sanitize(c.type)}</span> 
+                            ${DOMPurify.sanitize(c.name)}
+                            <span class="w-1 h-1 bg-white/30 rounded-full"></span>
+                            <span class="text-emerald-300">${c.ageCategory === 'Adult' ? '18+' : 'Un18'}</span>
+                        </span>`).join('')}
+                </div>
+            `;
+        }
+
+        return `
         <div class="premium-card !p-8 flex flex-col gap-6">
             <div class="flex justify-between items-start">
                 <div class="flex gap-5">
                     <div>
-                        <h4 class="text-xl font-black text-white leading-tight">${m.name}</h4>
-                        <p class="text-[10px] text-emerald-300 font-extrabold uppercase tracking-[0.15em] mt-1">${m.profession || 'Association Member'}</p>
+                        <h4 class="text-xl font-black text-white leading-tight">${safeName}</h4>
+                        <p class="text-[10px] text-emerald-300 font-extrabold uppercase tracking-[0.15em] mt-1">${safeProfession}</p>
                     </div>
                 </div>
                 <button onclick="togglePaid('${m.id}', ${m.isVerifiedPaid})" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${m.isVerifiedPaid ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-amber-400 text-white shadow-lg shadow-amber-500/20'}">
@@ -297,44 +281,33 @@ window.renderAdminContent = () => {
                     <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
                         <i class="fa-solid fa-phone text-[10px] text-emerald-300"></i>
                     </div>
-                    <span class="text-white font-bold">${m.mobile}</span>
+                    <span class="text-white font-bold">${safeMobile}</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
                         <i class="fa-solid fa-envelope text-[10px] text-emerald-300"></i>
                     </div>
-                    <span class="text-white font-bold truncate">${m.email}</span>
+                    <span class="text-white font-bold truncate">${safeEmail}</span>
                 </div>
                 <div class="flex items-start gap-3 col-span-1 md:col-span-2">
                     <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-map-marker-alt text-[10px] text-emerald-300"></i>
                     </div>
-                    <span class="text-white/80 leading-relaxed pt-1">${m.address || 'No Address Provided'}</span>
+                    <span class="text-white/80 leading-relaxed pt-1">${safeAddress}</span>
                 </div>
             </div>
 
-            ${m.spouse || (m.householdMembers && m.householdMembers.length > 0) ? `
+            ${safeSpouse || safeHousehold ? `
                 <div class="space-y-4 bg-white/5 p-5 rounded-2xl border border-white/10">
-                    ${m.spouse ? `
+                    ${safeSpouse ? `
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-heart text-rose-400 text-xs"></i>
-                            <span class="text-xs font-bold text-white">${m.spouse}</span>
-                            ${m.spouseProfession ? `<span class="text-[10px] text-white/50 font-medium italic">(${m.spouseProfession})</span>` : ''}
+                            <span class="text-xs font-bold text-white">${safeSpouse}</span>
+                            ${safeSpouseProfession ? `<span class="text-[10px] text-white/50 font-medium italic">(${safeSpouseProfession})</span>` : ''}
                         </div>
                     ` : ''}
                     
-                    ${m.householdMembers && m.householdMembers.length > 0 ? `
-                        <div class="flex flex-wrap gap-2">
-                            <i class="fa-solid fa-people-roof text-emerald-400 text-xs mt-1 mr-1"></i>
-                            ${m.householdMembers.map(c => `
-                                <span class="px-3 py-1 bg-white/10 text-white rounded-lg text-[10px] font-extrabold border border-white/10 flex items-center gap-2 shadow-sm">
-                                    <span class="opacity-50 uppercase text-[8px] font-black">${c.type}</span> 
-                                    ${c.name}
-                                    <span class="w-1 h-1 bg-white/30 rounded-full"></span>
-                                    <span class="text-emerald-300">${c.ageCategory === 'Adult' ? '18+' : 'Un18'}</span>
-                                </span>`).join('')}
-                        </div>
-                    ` : ''}
+                    ${safeHousehold}
                 </div>
             ` : ''}
 
@@ -343,7 +316,8 @@ window.renderAdminContent = () => {
                 <button onclick="confirmDelete('${m.id}')" class="py-4 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 transition-all shadow-lg">Remove</button>
             </div>
         </div>
-    `).join('') || '<div class="text-center py-24 text-white/40 font-bold uppercase tracking-widest">No matching records</div>';
+    `;
+    }).join('') || '<div class="text-center py-24 text-white/40 font-bold uppercase tracking-widest">No matching records</div>';
 };
 
 
@@ -395,6 +369,10 @@ window.executeDelete = async () => {
 };
 
 window.exportData = () => {
+    if (!isAdmin) {
+        showToast("Admin access required to export", false);
+        return;
+    }
     const csv = "Name,Mobile,Email,Profession,Address,Spouse,Spouse Profession,Household,Paid\n" +
         members.map(m => {
             const householdStr = (m.householdMembers || []).map(h => `${h.type}:${h.name}(${h.ageCategory})`).join('; ');
