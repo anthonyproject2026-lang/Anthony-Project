@@ -1,0 +1,119 @@
+rules_version = '2';
+
+// Firestore security rules for the SHEMA membership registry.
+// Publish ONLY through the Firebase console after reading docs/COMMITTEE-SETUP.md.
+// Publishing replaces every rule in the project, so check first that no other app
+// uses project "anthony-form".
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // An administrator is a non-anonymous user whose UID has a document in /admins.
+    // The /admins collection is managed in the Firebase console only.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function str(d, k, min, max) {
+      return d[k] is string && d[k].size() >= min && d[k].size() <= max;
+    }
+
+    // Written compactly on purpose: Firestore stops evaluating a request after 1000
+    // expressions, and a 12-person household with one check per property hit that limit.
+    // A non-map entry, non-string value or wrong key set makes the expression fail (deny).
+    function hmEntryOk(m) {
+      return m.keys().toSet() == ['type', 'name', 'ageCategory'].toSet()
+        && (m.type + '|' + m.ageCategory).matches('(Child|Other)[|](Minor|Adult)|Parent[|]Adult')
+        && m.name.matches('.{1,100}');
+    }
+    function hmOk(l, i) {
+      return l.size() <= i || hmEntryOk(l[i]);
+    }
+    function householdOk(l) {
+      return l is list && l.size() <= 12
+        && hmOk(l, 0) && hmOk(l, 1) && hmOk(l, 2) && hmOk(l, 3)
+        && hmOk(l, 4) && hmOk(l, 5) && hmOk(l, 6) && hmOk(l, 7)
+        && hmOk(l, 8) && hmOk(l, 9) && hmOk(l, 10) && hmOk(l, 11);
+    }
+    function childOk(l, i) {
+      return l.size() <= i || l[i].matches('.{1,100}');
+    }
+    function childrenOk(l) {
+      return l is list && l.size() <= 12
+        && childOk(l, 0) && childOk(l, 1) && childOk(l, 2) && childOk(l, 3)
+        && childOk(l, 4) && childOk(l, 5) && childOk(l, 6) && childOk(l, 7)
+        && childOk(l, 8) && childOk(l, 9) && childOk(l, 10) && childOk(l, 11);
+    }
+
+    // Fields shared by every shape. mobileRe differs between new and legacy clients.
+    function profileOk(d, mobileRe) {
+      return str(d, 'name', 1, 100)
+        && str(d, 'email', 3, 254) && d.email.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && d.mobile is string && d.mobile.matches(mobileRe)
+        && str(d, 'profession', 0, 100)
+        && str(d, 'address', 0, 300)
+        && str(d, 'spouse', 0, 100)
+        && str(d, 'spouseProfession', 0, 100)
+        && householdOk(d.householdMembers)
+        && childrenOk(d.childrenList);
+    }
+
+    function profileKeys() {
+      return ['name', 'email', 'mobile', 'profession', 'address', 'spouse',
+              'spouseProfession', 'householdMembers', 'childrenList'];
+    }
+
+    // New site: server timestamps, recorded consent.
+    function createOk(d) {
+      let keys = profileKeys().concat(['isVerifiedPaid', 'paymentDeclared', 'consentGiven',
+                                       'consentNoticeVersion', 'consentAt', 'submittedAt']);
+      return d.keys().hasAll(keys) && d.keys().hasOnly(keys)
+        && profileOk(d, '^[+]?[0-9]{8,15}$')
+        && d.isVerifiedPaid == false
+        && d.paymentDeclared is bool
+        && d.consentGiven == true
+        && d.consentNoticeVersion is string && d.consentNoticeVersion.size() <= 20
+        && d.consentAt == request.time
+        && d.submittedAt == request.time;
+    }
+
+    // LEGACY: the shape written by the site as it was before this change.
+    // Lets the rules be published BEFORE the new site goes live without breaking the form.
+    // DELETE this function and its use below once the new site has been live for a week.
+    function legacyCreateOk(d) {
+      let keys = profileKeys().concat(['isVerifiedPaid', 'submittedAt']);
+      return d.keys().hasAll(keys) && d.keys().hasOnly(keys)
+        && profileOk(d, '^[0-9+()./-]{6,20}$')
+        && d.isVerifiedPaid == false
+        && d.submittedAt is string && d.submittedAt.size() <= 40;
+    }
+
+    function adminUpdateOk() {
+      let d = request.resource.data;
+      let changed = d.diff(resource.data).affectedKeys();
+      return changed.hasOnly(profileKeys().concat(['isVerifiedPaid', 'updatedAt']))
+        && d.get('isVerifiedPaid', false) is bool
+        && (!changed.hasAny(['updatedAt']) || d.updatedAt == request.time)
+        && (changed.hasOnly(['isVerifiedPaid', 'updatedAt'])
+            || profileOk(d, '^[+]?[0-9]{8,15}$'));
+    }
+
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      // No list, create, update or delete from any client. Managed in the Firebase console only.
+    }
+
+    match /artifacts/sma-registry-2026/public/data/members/{memberId} {
+      // Only one shape is evaluated per request (keeps evaluation well under Firestore's
+      // 1000-expression limit). A document with consentGiven must pass the new-shape check.
+      allow create: if request.resource.data.keys().hasAny(['consentGiven'])
+        ? createOk(request.resource.data)
+        : legacyCreateOk(request.resource.data);
+      allow read, delete: if isAdmin();
+      allow update: if isAdmin() && adminUpdateOk();
+    }
+
+    // Everything else is denied by default.
+  }
+}
