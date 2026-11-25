@@ -2,6 +2,11 @@
     "buildCommand": "",
     "outputDirectory": ".",
     "framework": null,
+    "git": {
+        "deploymentEnabled": {
+            "security-privacy-a11y-fixes": false
+        }
+    },
     "rewrites": [
         {
             "source": "/(.*)",
