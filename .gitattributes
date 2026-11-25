@@ -1,0 +1,2 @@
+# Keep self-hosted third-party files byte-for-byte (hashes are recorded in vendor/VENDOR.md)
+vendor/** -text
