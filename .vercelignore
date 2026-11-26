@@ -1,0 +1,6 @@
+# Development and documentation files are not deployed.
+dev/
+docs/
+firestore.rules
+firebase.json
+*.md

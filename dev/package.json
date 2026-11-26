@@ -1,0 +1,27 @@
+{
+  "name": "shema-registry-dev",
+  "private": true,
+  "description": "Development-only tooling for the SHEMA registry. Nothing in this folder is deployed.",
+  "type": "module",
+  "scripts": {
+    "build:vendor": "node build/build-vendor.mjs",
+    "check:vendor": "node build/build-vendor.mjs --check",
+    "check:placeholders": "node build/check-placeholders.mjs",
+    "serve": "node serve.mjs 5173",
+    "test": "node --test --test-concurrency=1 \"tests/unit/*.test.mjs\" \"tests/browser/*.test.mjs\"",
+    "test:unit": "node --test \"tests/unit/*.test.mjs\"",
+    "test:browser": "node --test --test-concurrency=1 \"tests/browser/*.test.mjs\"",
+    "test:rules": "firebase emulators:exec --config ../firebase.json --only firestore --project demo-shema-registry \"node --test tests/rules/members.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "4.0.1",
+    "@fontsource-variable/outfit": "5.3.0",
+    "@fortawesome/fontawesome-free": "6.0.0",
+    "axe-core": "4.14.1",
+    "esbuild": "0.28.2",
+    "firebase": "11.6.1",
+    "firebase-tools": "15.37.0",
+    "playwright-core": "1.65.1",
+    "tailwindcss": "3.4.17"
+  }
+}

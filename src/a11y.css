@@ -1,0 +1,218 @@
+/* Accessibility, privacy-card and self-hosted font styles.
+   Loaded last so it can restore focus outlines that style.css and Tailwind remove. */
+
+/* Outfit variable font (SIL OFL 1.1), self-hosted from @fontsource-variable/outfit */
+@font-face {
+    font-family: 'Outfit';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(../vendor/fonts/outfit-latin-ext-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Outfit';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(../vendor/fonts/outfit-latin-wght-normal.woff2) format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* The hidden attribute always wins over display utilities. */
+[hidden] {
+    display: none !important;
+}
+
+/* Replaces the inline style="animation-delay" attributes (blocked by the CSP). */
+.anim-delay-1 { animation-delay: 0.1s; }
+.anim-delay-2 { animation-delay: 0.2s; }
+.anim-delay-3 { animation-delay: 0.3s; }
+
+/* Visible keyboard focus on every surface (emerald, gold, white). */
+:focus-visible {
+    outline: 3px solid #FDE047 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 6px #022C22 !important;
+}
+
+/* Minimum 44 x 44 px targets. */
+button,
+select,
+input[type="checkbox"],
+[role="button"] {
+    min-height: 44px;
+}
+
+button {
+    min-width: 44px;
+}
+
+input[type="checkbox"] {
+    min-width: 44px;
+}
+
+.privacy-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.25rem 0.5rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.privacy-link.small {
+    font-size: 0.85rem;
+    color: #E2E8F0;
+}
+
+.required-note {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+/* Error messages: light text on dark red, at least 4.5:1 on every card colour. */
+.field-error,
+.error-summary {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    background: #7F1D1D;
+    color: #FFFFFF;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.error-summary {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    font-size: 1.05rem;
+}
+
+[aria-invalid="true"] {
+    border-color: #FCA5A5 !important;
+    border-width: 3px !important;
+}
+
+/* Privacy card and full privacy view */
+.privacy-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 500;
+    color: #FFFFFF;
+}
+
+.privacy-text h3 {
+    font-size: 1.15rem;
+    font-weight: 900;
+    margin-top: 1.5rem;
+}
+
+.privacy-version {
+    font-style: italic;
+}
+
+.consent-label {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 1.5rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.consent-box {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    accent-color: #10B981;
+    cursor: pointer;
+}
+
+/* Admin tools */
+.admin-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 1rem;
+    background: #0F172A;
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.admin-tool-btn:hover {
+    background: #1E293B;
+}
+
+.scan-result {
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    background: #0F172A;
+    color: #FFFFFF;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.scan-result > * + * {
+    margin-top: 0.75rem;
+}
+
+.scan-title {
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+
+.scan-list {
+    list-style: disc;
+    padding-left: 1.5rem;
+    word-break: break-word;
+}
+
+/* Native dialogs: reset the box so the existing layout wrappers do the work. */
+dialog.app-dialog {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+dialog.app-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fade-in-up,
+    .view-transition {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .submit-btn,
+    .submit-btn:hover {
+        transform: none !important;
+        transition: none !important;
+    }
+
+    html {
+        scroll-behavior: auto !important;
+    }
+}
